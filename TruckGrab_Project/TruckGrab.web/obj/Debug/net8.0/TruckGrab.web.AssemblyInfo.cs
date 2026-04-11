@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TruckGrab.web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2046d0cbd20795634a4a66eedef1510e0d445a8")]
 [assembly: System.Reflection.AssemblyProductAttribute("TruckGrab.web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TruckGrab.web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

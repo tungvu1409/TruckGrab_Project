@@ -47,3 +47,13 @@ C:\Users\laptop\TruckGrab_Project\TruckGrab.Web\obj\Debug\net8.0\refint\TruckGra
 C:\Users\laptop\TruckGrab_Project\TruckGrab.Web\obj\Debug\net8.0\TruckGrab.web.pdb
 C:\Users\laptop\TruckGrab_Project\TruckGrab.Web\obj\Debug\net8.0\TruckGrab.web.genruntimeconfig.cache
 C:\Users\laptop\TruckGrab_Project\TruckGrab.Web\obj\Debug\net8.0\ref\TruckGrab.web.dll
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.csproj.AssemblyReference.cache
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.AssemblyInfoInputs.cache
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.AssemblyInfo.cs
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.csproj.CoreCompileInputs.cache
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.RazorAssemblyInfo.cache
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.RazorAssemblyInfo.cs
+C:\Users\Admin\Desktop\C\C#\TruckGrab_Project\TruckGrab_Project\TruckGrab.web\obj\Debug\net8.0\TruckGrab.web.sourcelink.json
