@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\TruckGrab.web.props" />
-</Project>
