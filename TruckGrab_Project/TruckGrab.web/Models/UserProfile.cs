@@ -1,4 +1,4 @@
-namespace Models;
+namespace TruckGrab.web.Models;
 public class UserProfile
 {
     public int UserId { get; set; }

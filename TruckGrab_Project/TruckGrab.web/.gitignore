@@ -1,0 +1,55 @@
+## Build results
+bin/
+obj/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## Logs
+*.log
+
+## Database files
+*.db
+*.sqlite
+*.mdf
+*.ldf
+
+## ASP.NET Core
+wwwroot/lib/
+
+## Node (nếu có frontend)
+node_modules/
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Environment variables
+.env
+
+## Publish output
+publish/
+
+## Temporary files
+*.tmp
+*.temp
+
+## NuGet
+*.nupkg
+packages/
+!packages/build/
+
+## Resharper
+_ReSharper*/
+*.DotSettings.user
+
+## EF Core
+Migrations/*Snapshot.cs
