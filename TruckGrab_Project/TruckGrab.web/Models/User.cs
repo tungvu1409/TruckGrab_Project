@@ -12,11 +12,11 @@ public class User
         public string UserName { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public Role Role { get; set; }
-        public bool isActive { get; set; }
+        public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public UserProfile Profile { get; set; } = new();
-        public Driver Driver { get; set; } = new();
+        public Driver? Driver { get; set; }
 
 }

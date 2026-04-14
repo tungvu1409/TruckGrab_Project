@@ -1,6 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using TruckGrab.web.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+	options.UseMySql(
+		builder.Configuration.GetConnectionString("DefaultConnection"),
+		ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+	);
+});
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
