@@ -1,3 +1,4 @@
+namespace TruckGrab.web.Models;
 public class OrderStatusLog
 {
     public int Id { get; set; }

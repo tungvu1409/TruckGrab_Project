@@ -1,3 +1,6 @@
+namespace TruckGrab.web.Models;
+
+
 public enum DriverStatus
 {
     Available,

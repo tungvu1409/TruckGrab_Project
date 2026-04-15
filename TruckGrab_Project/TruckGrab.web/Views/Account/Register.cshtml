@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header text-center">
+                    <h3>Register for TruckGrab</h3>
+                </div>
+
+                <div class="card-body">
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.Error
+                        </div>
+                    }
+
+                    <form method="post" asp-action="Register">
+
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label>Username</label>
+                            <input name="userName" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Email</label>
+                            <input name="email" type="email" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input name="password" type="password" class="form-control" required minlength="6" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Confirm Password</label>
+                            <input name="confirmPassword" type="password" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Account Type</label>
+                            <select name="role" class="form-control">
+                                <option value="Customer">Customer</option>
+                                <option value="Driver">Driver</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            Register
+                        </button>
+
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a asp-controller="Account" asp-action="Login">
+                            Login here
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

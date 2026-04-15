@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TruckGrab.web.Data;
+using TruckGrab.web.Services.Implementation;
+using TruckGrab.web.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -12,15 +13,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
 	);
 });
+
+builder.Services.AddScoped<IDriverService, DriverService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
+
+builder.Services.AddSession();
 
 var app = builder.Build();
+app.UseSession();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

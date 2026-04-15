@@ -1,3 +1,4 @@
+namespace TruckGrab.web.Models;
 public class Trip
 {
     public int Id { get; set; }

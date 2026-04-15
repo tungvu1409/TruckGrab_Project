@@ -1,4 +1,4 @@
-
+namespace TruckGrab.web.Models;
 public enum LocationType
 {
     Warehouse,

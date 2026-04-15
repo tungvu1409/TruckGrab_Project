@@ -16,7 +16,7 @@ public class User
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public UserProfile Profile { get; set; } = new();
+        public UserProfile? Profile { get; set; }
         public Driver? Driver { get; set; }
 
 }

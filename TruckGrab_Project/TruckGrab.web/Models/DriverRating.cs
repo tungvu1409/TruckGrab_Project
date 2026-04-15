@@ -1,3 +1,5 @@
+namespace TruckGrab.web.Models;
+
 public class DriverRating
 {
     public int Id { get; set; }

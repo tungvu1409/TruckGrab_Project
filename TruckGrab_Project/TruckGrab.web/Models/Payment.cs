@@ -1,3 +1,4 @@
+namespace TruckGrab.web.Models;
 public enum PaymentMethod
 {
         Cash,
