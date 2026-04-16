@@ -1,11 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TruckGrab.web.Data;
 using TruckGrab.web.Models;
-using BCrypt.Net;
-
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace TruckGrab.web.Controllers;
 
@@ -47,6 +42,7 @@ public class AccountController : Controller
             
            Role.Admin => RedirectToAction("Index", "Admin"),
             Role.Driver => RedirectToAction("Index", "Driver"),
+            Role.Customer => RedirectToAction("Index", "Customer"),
             _ => RedirectToAction("Index", "Home")
         };
     }
