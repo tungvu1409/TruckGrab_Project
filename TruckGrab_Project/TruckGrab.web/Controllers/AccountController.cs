@@ -4,7 +4,7 @@ using TruckGrab.web.Models;
 
 namespace TruckGrab.web.Controllers;
 
-[Route("account")]
+[Route("Account")]
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -34,6 +34,7 @@ public class AccountController : Controller
             return View();
         }
 
+        HttpContext.Session.SetInt32("UserId", user.Id);
         HttpContext.Session.SetString("UserName", user.UserName);
         HttpContext.Session.SetString("Role", user.Role.ToString());
 

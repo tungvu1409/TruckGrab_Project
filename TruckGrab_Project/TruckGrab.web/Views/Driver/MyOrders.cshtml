@@ -1,0 +1,136 @@
+@model IEnumerable<TruckGrab.web.Models.Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">My Orders</h3>
+                    <a href="@Url.Action("Index", "Driver")" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order Code</th>
+                                    <th>Cargo Type</th>
+                                    <th>Weight</th>
+                                    <th>Distance</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Pickup Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var order in Model)
+                                    {
+                                        <tr>
+                                            <td><strong>@order.OrderCode</strong></td>
+                                            <td>@order.CargoType</td>
+                                            <td>@order.Weight kg</td>
+                                            <td>@order.DistanceKm km</td>
+                                            <td>₹@order.TotalPrice.ToString("N2")</td>
+                                            <td>
+                                                @switch (order.Status)
+                                                {
+                                                    case "Pending":
+                                                        <span class="badge bg-warning">Pending</span>
+                                                        break;
+                                                    case "Confirmed":
+                                                        <span class="badge bg-info">Confirmed</span>
+                                                        break;
+                                                    case "OnTheWay":
+                                                        <span class="badge bg-primary">On The Way</span>
+                                                        break;
+                                                    case "Completed":
+                                                        <span class="badge bg-success">Completed</span>
+                                                        break;
+                                                    case "Cancelled":
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@order.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@(order.ScheduledPickupTime?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                            <td>
+                                                <a href="@Url.Action("OrderDetails", "Driver", new { id = order.Id })" class="btn btn-sm btn-info">View Details</a>
+                                                @if (order.Status == "Confirmed")
+                                                {
+                                                    <button class="btn btn-sm btn-success" onclick="startDelivery(@order.Id)">Start Delivery</button>
+                                                }
+                                                else if (order.Status == "OnTheWay")
+                                                {
+                                                    <button class="btn btn-sm btn-primary" onclick="completeDelivery(@order.Id)">Complete Delivery</button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="8" class="text-center">No orders found</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function startDelivery(orderId) {
+            if (confirm('Are you sure you want to start delivery for this order?')) {
+                fetch(`/Driver/StartDelivery/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function completeDelivery(orderId) {
+            if (confirm('Are you sure you want to mark this delivery as completed?')) {
+                fetch(`/Driver/CompleteDelivery/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}

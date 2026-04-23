@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Home";
+    var userName = Context.Session.GetString("UserName");
+    var role = Context.Session.GetString("Role");
+}
+
+<div class="text-center mt-5">
+    @if (role == "Customer")
+    {
+        <h1 class="display-4">Welcome, @userName 👋</h1>
+
+        <div class="mt-4">
+            <input type="text"
+                   class="form-control w-50 mx-auto"
+                   placeholder="Lorem ipsum dolor sit amet..." />
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success"
+               asp-controller="Order"
+               asp-action="Create">
+                Create Order
+            </a>
+        </div>
+    }
+
+</div>

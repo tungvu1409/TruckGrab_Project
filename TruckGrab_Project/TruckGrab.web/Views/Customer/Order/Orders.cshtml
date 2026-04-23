@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Your Orders";
+}
+
+<div class="container mt-4">
+    <h2>Your Orders</h2>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Order Code</th>
+                <th>Weight</th>
+                <th>Distance (km)</th>
+                <th>Status</th>
+                <th>Total Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.OrderCode</td>
+                        <td>@order.Weight</td>
+                        <td>@order.DistanceKm</td>
+                        <td>@order.Status</td>
+                        <td>@order.TotalPrice</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="/Orders/Details/@order.Id">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center">
+                        No orders found
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

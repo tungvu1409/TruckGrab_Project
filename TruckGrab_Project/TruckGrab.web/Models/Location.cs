@@ -2,8 +2,7 @@ namespace TruckGrab.web.Models;
 public enum LocationType
 {
     Warehouse,
-    Customer,
-    ServiceStation
+    CustomerPoint,
 }
 public class Location
 {

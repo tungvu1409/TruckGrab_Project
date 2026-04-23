@@ -22,3 +22,12 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
+}
+
+.dropdown-menu {
+    transition: all 0.2s ease;
+}

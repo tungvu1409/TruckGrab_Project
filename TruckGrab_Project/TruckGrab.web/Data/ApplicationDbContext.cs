@@ -156,7 +156,8 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(l => l.Id);
 
             entity.Property(l => l.Id)
-                .HasColumnName("id");
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
             entity.Property(l => l.Name)
                 .HasColumnName("name");
             entity.Property(l => l.Address)
@@ -167,7 +168,12 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("lng");
             entity.Property(l => l.Type)
                 .HasColumnName("type")
-                .HasConversion<string>();
+                .HasConversion(
+                v => v == LocationType.Warehouse ? "warehouse" : "customer_point",
+                v => v == "warehouse"
+                    ? LocationType.Warehouse
+                    : LocationType.CustomerPoint
+            );
         });
 
         modelBuilder.Entity<Order>(entity =>

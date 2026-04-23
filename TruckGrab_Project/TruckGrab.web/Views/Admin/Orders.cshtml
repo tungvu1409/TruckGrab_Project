@@ -1,0 +1,143 @@
+@model IEnumerable<TruckGrab.web.Models.Order>
+
+@{
+    ViewData["Title"] = "Orders Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Orders Management</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Status Filter -->
+                    <div class="mb-3">
+                        <div class="btn-group" role="group">
+                            <a href="@Url.Action("Orders", "Admin")" class="btn btn-outline-primary">All</a>
+                            <a href="@Url.Action("OrdersByStatus", "Admin", new { status = "Pending" })" class="btn btn-outline-warning">Pending</a>
+                            <a href="@Url.Action("OrdersByStatus", "Admin", new { status = "Confirmed" })" class="btn btn-outline-info">Confirmed</a>
+                            <a href="@Url.Action("OrdersByStatus", "Admin", new { status = "OnTheWay" })" class="btn btn-outline-primary">On The Way</a>
+                            <a href="@Url.Action("OrdersByStatus", "Admin", new { status = "Completed" })" class="btn btn-outline-success">Completed</a>
+                            <a href="@Url.Action("OrdersByStatus", "Admin", new { status = "Cancelled" })" class="btn btn-outline-danger">Cancelled</a>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order Code</th>
+                                    <th>Customer ID</th>
+                                    <th>Cargo Type</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Distance (km)</th>
+                                    <th>Total Price</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@order.OrderCode</strong></td>
+                                        <td>@order.CustomerId</td>
+                                        <td>@order.CargoType</td>
+                                        <td>@order.Weight kg</td>
+                                        <td>@order.DistanceKm km</td>
+                                        <td>₹@order.TotalPrice.ToString("N2")</td>
+                                        <td>
+                                            @switch (order.Status)
+                                            {
+                                                case "Pending":
+                                                    <span class="badge bg-warning">Pending</span>
+                                                    break;
+                                                case "Confirmed":
+                                                    <span class="badge bg-info">Confirmed</span>
+                                                    break;
+                                                case "OnTheWay":
+                                                    <span class="badge bg-primary">On The Way</span>
+                                                    break;
+                                                case "Completed":
+                                                    <span class="badge bg-success">Completed</span>
+                                                    break;
+                                                case "Cancelled":
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@order.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("OrderDetails", "Admin", new { id = order.Id })" class="btn btn-sm btn-info">View</a>
+                                                @if (order.Status == "Pending" || order.Status == "Confirmed")
+                                                {
+                                                    <button class="btn btn-sm btn-success" onclick="updateStatus(@order.Id, 'Completed')">Complete</button>
+                                                    <button class="btn btn-sm btn-danger" onclick="cancelOrder(@order.Id)">Cancel</button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateStatus(orderId, newStatus) {
+            const action = newStatus === 'Completed' ? 'complete' : 'cancel';
+            const message = `Are you sure you want to ${action} this order?`;
+
+            if (confirm(message)) {
+                fetch(`/Admin/UpdateOrderStatus/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function cancelOrder(orderId) {
+            const reason = prompt('Please provide a reason for cancellation:');
+            if (reason) {
+                fetch(`/Admin/CancelOrder/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason: reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}

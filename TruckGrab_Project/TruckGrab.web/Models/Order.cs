@@ -1,4 +1,9 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
+
+
 namespace TruckGrab.web.Models;
+
 public class Order
 {
     public int Id { get; set; }
@@ -6,6 +11,19 @@ public class Order
     public int CustomerId { get; set; } 
     public int PickupLocId { get; set; }
     public int DeliveryLocId { get; set; }
+
+    [NotMapped]
+    public string PickupAddress { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string DeliveryAddress { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string PickupLocationAddress { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string DeliveryLocationAddress { get; set; } = string.Empty;
+
     public string CargoType { get; set; } = string.Empty;
     public decimal Weight { get; set; }
     public decimal DistanceKm { get; set; }
