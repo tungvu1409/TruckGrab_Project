@@ -68,6 +68,58 @@ public class OrderService : IOrderService
     }
 
     // ========================
+    // GET DRIVER ORDER DETAIL
+    // ========================
+    public (Order?, List<OrderStatusLog>) GetDriverOrderDetail(int orderId, int driverId)
+    {
+        var order = _context.Orders
+            .FirstOrDefault(o => o.Id == orderId && !o.IsDeleted && o.DriverId == driverId);
+
+        if (order == null)
+            return (null, new List<OrderStatusLog>());
+
+        var pickupLocation = _context.Locations
+            .FirstOrDefault(l => l.Id == order.PickupLocId);
+
+        var deliveryLocation = _context.Locations
+            .FirstOrDefault(l => l.Id == order.DeliveryLocId);
+
+        order.PickupLocationAddress = pickupLocation?.Address ?? string.Empty;
+        order.DeliveryLocationAddress = deliveryLocation?.Address ?? string.Empty;
+        order.PickupAddress = order.PickupLocationAddress;
+        order.DeliveryAddress = order.DeliveryLocationAddress;
+
+        var logs = _context.OrderStatusLogs
+            .Where(l => l.OrderId == orderId)
+            .OrderByDescending(l => l.Timestamp)
+            .ToList();
+
+        return (order, logs);
+    }
+
+    // ========================
+    // GET DRIVER ORDERS
+    // ========================
+    public List<Order> GetDriverOrders(int driverId)
+    {
+        return _context.Orders
+            .Where(o => !o.IsDeleted && o.DriverId == driverId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToList();
+    }
+
+    // ========================
+    // GET AVAILABLE ORDERS
+    // ========================
+    public List<Order> GetAvailableOrders()
+    {
+        return _context.Orders
+            .Where(o => !o.IsDeleted && o.Status == OrderStatus.Pending && o.DriverId == null)
+            .OrderBy(o => o.CreatedAt)
+            .ToList();
+    }
+
+    // ========================
     // CREATE
     // ========================
 
@@ -250,4 +302,75 @@ public class OrderService : IOrderService
 
     return (distanceKm * basePricePerKm + weight * weightRate) * cargoMultiplier;
 }
+
+    // ========================
+    // ASSIGN ORDER TO DRIVER
+    // ========================
+    public bool AssignOrderToDriver(int orderId, int driverId, int assignedByUserId)
+    {
+        var order = _context.Orders.Find(orderId);
+
+        if (order == null || order.IsDeleted)
+            return false;
+
+        if (order.Status != OrderStatus.Pending || order.DriverId != null)
+            return false;
+
+        var oldStatus = order.Status;
+        order.Status = OrderStatus.Assigned;
+        order.DriverId = driverId;
+        order.UpdatedAt = DateTime.UtcNow;
+
+        _context.OrderStatusLogs.Add(new OrderStatusLog
+        {
+            OrderId = orderId,
+            OldStatus = oldStatus,
+            NewStatus = OrderStatus.Assigned,
+            ChangedByUserId = assignedByUserId,
+            Timestamp = DateTime.UtcNow,
+            Note = $"Assigned to driver {driverId}"
+        });
+
+        _context.SaveChanges();
+        return true;
+    }
+
+    // ========================
+    // UPDATE ORDER STATUS
+    // ========================
+    public bool UpdateOrderStatus(int orderId, string newStatus, int changedByUserId, string note)
+    {
+        var order = _context.Orders.Find(orderId);
+
+        if (order == null || order.IsDeleted)
+            return false;
+
+        var oldStatus = order.Status;
+
+        // Update status-specific fields
+        if (newStatus == OrderStatus.InTransit)
+        {
+            order.ActualPickupTime = DateTime.UtcNow;
+        }
+        else if (newStatus == OrderStatus.Delivered)
+        {
+            order.ActualDeliveryTime = DateTime.UtcNow;
+        }
+
+        order.Status = newStatus;
+        order.UpdatedAt = DateTime.UtcNow;
+
+        _context.OrderStatusLogs.Add(new OrderStatusLog
+        {
+            OrderId = orderId,
+            OldStatus = oldStatus,
+            NewStatus = newStatus,
+            ChangedByUserId = changedByUserId,
+            Timestamp = DateTime.UtcNow,
+            Note = note
+        });
+
+        _context.SaveChanges();
+        return true;
+    }
 }

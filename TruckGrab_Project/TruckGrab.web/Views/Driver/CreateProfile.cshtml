@@ -1,0 +1,111 @@
+@model TruckGrab.web.Models.Driver
+
+@{
+    ViewData["Title"] = "Create Driver Profile";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create Driver Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form id="createProfileForm">
+                        <div class="mb-3">
+                            <label for="licenseNumber" class="form-label">License Number *</label>
+                            <input type="text" class="form-control" id="licenseNumber" name="licenseNumber"
+                                   placeholder="Enter your license number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="licenseClass" class="form-label">License Class *</label>
+                            <select class="form-control" id="licenseClass" name="licenseClass" required>
+                                <option value="">Select license class</option>
+                                <option value="A">Class A - Heavy vehicles</option>
+                                <option value="B">Class B - Light trucks</option>
+                                <option value="C">Class C - Commercial vehicles</option>
+                                <option value="D">Class D - Passenger vehicles</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="experienceYears" class="form-label">Years of Experience *</label>
+                            <input type="number" class="form-control" id="experienceYears" name="experienceYears"
+                                   placeholder="Enter years of experience" min="0" max="50" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="currentTruckId" class="form-label">Current Truck ID</label>
+                            <input type="number" class="form-control" id="currentTruckId" name="currentTruckId"
+                                   placeholder="Enter truck ID if assigned">
+                            <small class="form-text text-muted">Leave empty if no truck is currently assigned</small>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Create Profile</button>
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary mt-2">Back to Home</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Requirements</h5>
+                </div>
+                <div class="card-body">
+                    <h6>To become a driver, you need:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success"></i> Valid commercial driver's license</li>
+                        <li><i class="fas fa-check-circle text-success"></i> At least 1 year of driving experience</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Clean driving record</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Assigned truck (optional for registration)</li>
+                    </ul>
+                    <hr>
+                    <p class="text-muted small">
+                        Your profile will be reviewed by our administrators before you can start accepting orders.
+                        You will receive an email notification once your account is approved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#createProfileForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const formData = {
+                    licenseNumber: $('#licenseNumber').val(),
+                    licenseClass: $('#licenseClass').val(),
+                    experienceYears: parseInt($('#experienceYears').val()),
+                    currentTruckId: $('#currentTruckId').val() ? parseInt($('#currentTruckId').val()) : null
+                };
+
+                fetch('/Driver/CreateProfile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Profile created successfully! Please wait for admin approval.');
+                        window.location.href = '@Url.Action("Index", "Home")';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating your profile.');
+                });
+            });
+        });
+    </script>
+}

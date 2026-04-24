@@ -66,10 +66,11 @@
                     }
                     else
                     {
-                        <div class="alert alert-warning">
-                            <h4>Profile Not Found</h4>
-                            <p>You need to complete your driver profile to start accepting orders.</p>
-                            <a href="@Url.Action("CreateProfile", "Driver")" class="btn btn-primary">Create Profile</a>
+                        <div class="d-flex flex-column align-items-start justify-content-center h-100">
+                            <div class="alert alert-warning w-100" role="alert">
+                                <p class="mb-3"><strong>You need to update your profile to start driving.</strong></p>
+                                <a href="@Url.Action("CreateProfile", "Driver")" class="btn btn-primary">Create Profile</a>
+                            </div>
                         </div>
                     }
                 </div>

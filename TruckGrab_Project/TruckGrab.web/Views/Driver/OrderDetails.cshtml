@@ -1,0 +1,137 @@
+@model TruckGrab.web.Models.Order
+
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Order Details - @Model.OrderCode</h3>
+                    <a href="@Url.Action("MyOrders", "Driver")" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to My Orders
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Cargo Information</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Cargo Type:</strong></td>
+                                    <td>@Model.CargoType</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Weight:</strong></td>
+                                    <td>@Model.Weight kg</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Distance:</strong></td>
+                                    <td>@Model.DistanceKm km</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Price:</strong></td>
+                                    <td>₹@Model.TotalPrice.ToString("N2")</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Order Status</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        @switch (Model.Status)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning">Pending</span>
+                                                break;
+                                            case "Assigned":
+                                                <span class="badge bg-info">Assigned</span>
+                                                break;
+                                            case "OnTheWay":
+                                            case "InTransit":
+                                                <span class="badge bg-primary">In Transit</span>
+                                                break;
+                                            case "Delivered":
+                                                <span class="badge bg-success">Delivered</span>
+                                                break;
+                                            case "Cancelled":
+                                                <span class="badge bg-danger">Cancelled</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@Model.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Scheduled Pickup:</strong></td>
+                                    <td>@(Model.ScheduledPickupTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not scheduled")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Actual Pickup:</strong></td>
+                                    <td>@(Model.ActualPickupTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not picked up")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Actual Delivery:</strong></td>
+                                    <td>@(Model.ActualDeliveryTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not delivered")</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Pickup Location</h5>
+                            <address>
+                                @Model.PickupLocationAddress
+                            </address>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Delivery Location</h5>
+                            <address>
+                                @Model.DeliveryLocationAddress
+                            </address>
+                        </div>
+                    </div>
+
+                    @if (ViewBag.OrderLogs != null)
+                    {
+                        var logs = ViewBag.OrderLogs as List<TruckGrab.web.Models.OrderStatusLog>;
+                        if (logs != null && logs.Any())
+                        {
+                            <hr>
+                            <h5>Order History</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Date & Time</th>
+                                            <th>Status Change</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in logs)
+                                        {
+                                            <tr>
+                                                <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td>@log.OldStatus → @log.NewStatus</td>
+                                                <td>@log.Note</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

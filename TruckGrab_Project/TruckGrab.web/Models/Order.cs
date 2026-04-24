@@ -8,7 +8,8 @@ public class Order
 {
     public int Id { get; set; }
     public string OrderCode { get; set; } = string.Empty;
-    public int CustomerId { get; set; } 
+    public int CustomerId { get; set; }
+    public int? DriverId { get; set; } // Added DriverId field
     public int PickupLocId { get; set; }
     public int DeliveryLocId { get; set; }
 
