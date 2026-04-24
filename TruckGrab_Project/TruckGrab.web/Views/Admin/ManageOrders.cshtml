@@ -1,0 +1,105 @@
+@model IEnumerable<TruckGrab.web.Models.Order>
+
+@{
+    ViewData["Title"] = "Manage Orders";
+    var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
+    var sortOrder = ViewBag.SortOrder as string ?? "desc";
+    var nextSortOrder = ViewBag.NextSortOrder as string ?? "asc";
+}
+
+<div class="container mt-4">
+    <h2>Manage Orders</h2>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>All Orders</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a href="@Url.Action("ManageOrders", new { sortBy = "OrderCode", sortOrder = sortBy == "OrderCode" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Order Code
+                                        @if (sortBy == "OrderCode")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageOrders", new { sortBy = "Status", sortOrder = sortBy == "Status" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Status
+                                        @if (sortBy == "Status")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageOrders", new { sortBy = "PickupAddress", sortOrder = sortBy == "PickupAddress" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Pickup Location
+                                        @if (sortBy == "PickupAddress")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageOrders", new { sortBy = "DeliveryAddress", sortOrder = sortBy == "DeliveryAddress" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Delivery Location
+                                        @if (sortBy == "DeliveryAddress")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageOrders", new { sortBy = "CreatedAt", sortOrder = sortBy == "CreatedAt" ? nextSortOrder : "desc" })" class="text-decoration-none">
+                                        Created At
+                                        @if (sortBy == "CreatedAt")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>@order.OrderCode</td>
+                                    <td>
+                                        <span class="badge bg-@(order.Status.ToLower() switch
+                                        {
+                                            "pending" => "warning",
+                                            "assigned" => "info",
+                                            "picking" => "primary",
+                                            "in_transit" => "secondary",
+                                            "delivered" => "success",
+                                            "cancelled" => "danger",
+                                            _ => "light"
+                                        })">
+                                            @order.Status
+                                        </span>
+                                    </td>
+                                    <td>@order.PickupLocationAddress</td>
+                                    <td>@order.DeliveryLocationAddress</td>
+                                    <td>@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No orders found.</p>
+            }
+        </div>
+    </div>
+</div>

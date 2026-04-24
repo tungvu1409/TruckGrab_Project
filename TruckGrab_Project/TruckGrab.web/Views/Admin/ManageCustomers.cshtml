@@ -1,0 +1,106 @@
+@model IEnumerable<TruckGrab.web.Models.User>
+
+@{
+    ViewData["Title"] = "Manage Customers";
+    var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
+    var sortOrder = ViewBag.SortOrder as string ?? "desc";
+    var nextSortOrder = ViewBag.NextSortOrder as string ?? "asc";
+}
+
+<div class="container mt-4">
+    <h2>Manage Customers</h2>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>All Customers</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a href="@Url.Action("ManageCustomers", new { sortBy = "Id", sortOrder = sortBy == "Id" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        ID
+                                        @if (sortBy == "Id")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageCustomers", new { sortBy = "UserName", sortOrder = sortBy == "UserName" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Username
+                                        @if (sortBy == "UserName")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageCustomers", new { sortBy = "Email", sortOrder = sortBy == "Email" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Email
+                                        @if (sortBy == "Email")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageCustomers", new { sortBy = "Phone", sortOrder = sortBy == "Phone" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Phone
+                                        @if (sortBy == "Phone")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageCustomers", new { sortBy = "Status", sortOrder = sortBy == "Status" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Status
+                                        @if (sortBy == "Status")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("ManageCustomers", new { sortBy = "CreatedAt", sortOrder = sortBy == "CreatedAt" ? nextSortOrder : "desc" })" class="text-decoration-none">
+                                        Created At
+                                        @if (sortBy == "CreatedAt")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customer in Model)
+                            {
+                                <tr>
+                                    <td>@customer.Id</td>
+                                    <td>@customer.UserName</td>
+                                    <td>@(customer.Profile?.Email ?? "N/A")</td>
+                                    <td>@(customer.Profile?.Phone ?? "N/A")</td>
+                                    <td>
+                                        <span class="badge bg-@(customer.IsActive ? "success" : "danger")">
+                                            @(customer.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td>@customer.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No customers found.</p>
+            }
+        </div>
+    </div>
+</div>

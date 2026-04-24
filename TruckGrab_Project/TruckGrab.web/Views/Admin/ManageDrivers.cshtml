@@ -1,0 +1,90 @@
+@model IEnumerable<TruckGrab.web.Models.Driver>
+
+@{
+    ViewData["Title"] = "Manage Drivers";
+    var users = ViewBag.Users as Dictionary<int, TruckGrab.web.Models.User>;
+    var sortBy = ViewBag.SortBy as string ?? "Id";
+    var sortOrder = ViewBag.SortOrder as string ?? "asc";
+    var nextSortOrder = ViewBag.NextSortOrder as string ?? "desc";
+}
+
+<div class="container mt-4">
+    <h2>Manage Drivers</h2>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>All Drivers</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a href="@Url.Action("ManageDrivers", new { sortBy = "Id", sortOrder = sortBy == "Id" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        ID
+                                        @if (sortBy == "Id")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>Name</th>
+                                <th>
+                                    <a href="@Url.Action("ManageDrivers", new { sortBy = "LicenseNumber", sortOrder = sortBy == "LicenseNumber" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        License Number
+                                        @if (sortBy == "LicenseNumber")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>Phone</th>
+                                <th>
+                                    <a href="@Url.Action("ManageDrivers", new { sortBy = "Status", sortOrder = sortBy == "Status" ? nextSortOrder : "asc" })" class="text-decoration-none">
+                                        Status
+                                        @if (sortBy == "Status")
+                                        {
+                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var driver in Model)
+                            {
+                                var user = users?.GetValueOrDefault(driver.UserId);
+                                <tr>
+                                    <td>@driver.Id</td>
+                                    <td>@(user?.Profile?.FullName ?? user?.UserName ?? "N/A")</td>
+                                    <td>@driver.LicenseNumber</td>
+                                    <td>@(user?.Profile?.Phone ?? "N/A")</td>
+                                    <td>
+                                        <span class="badge bg-@(driver.Status.ToString().ToLower() switch
+                                        {
+                                            "available" => "success",
+                                            "ondelivery" => "warning",
+                                            "offduty" => "secondary",
+                                            _ => "light"
+                                        })">
+                                            @driver.Status
+                                        </span>
+                                    </td>
+                                    <td>@(user?.CreatedAt.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No drivers found.</p>
+            }
+        </div>
+    </div>
+</div>

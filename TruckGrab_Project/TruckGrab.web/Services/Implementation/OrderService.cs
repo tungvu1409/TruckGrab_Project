@@ -168,7 +168,8 @@ public class OrderService : IOrderService
         if (order.CustomerId != userId)
             return false;
 
-        if (order.Status != OrderStatus.Pending)
+        // Allow updates for orders that are not completed or cancelled
+        if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
             return false;
 
         // Update pickup address if status is Pending or Picking

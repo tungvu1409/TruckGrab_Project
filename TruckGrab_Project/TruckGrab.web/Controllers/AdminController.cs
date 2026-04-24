@@ -88,6 +88,22 @@ public class AdminController : Controller
         return RedirectToAction("Users");
     }
 
+    // ===== USER DETAILS =====
+    public IActionResult Details(int id)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var user = _context.Users
+            .Include(u => u.Profile)
+            .Include(u => u.Driver)
+            .FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+
+        if (user == null) return NotFound();
+
+        return View(user);
+    }
+
     // ========================
     // DRIVERS
     // ========================
@@ -203,5 +219,157 @@ public class AdminController : Controller
         _context.SaveChanges();
 
         return RedirectToAction("Trucks");
+    }
+
+    // ========================
+    // MANAGE SECTION
+    // ========================
+
+    // ===== MANAGE ORDERS =====
+    public IActionResult ManageOrders(string sortBy = "CreatedAt", string sortOrder = "desc")
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var ordersQuery = _context.Orders
+            .Where(o => !o.IsDeleted);
+
+        // Apply sorting
+        ordersQuery = sortBy.ToLower() switch
+        {
+            "ordercode" => sortOrder.ToLower() == "asc" 
+                ? ordersQuery.OrderBy(o => o.OrderCode) 
+                : ordersQuery.OrderByDescending(o => o.OrderCode),
+            "status" => sortOrder.ToLower() == "asc" 
+                ? ordersQuery.OrderBy(o => o.Status) 
+                : ordersQuery.OrderByDescending(o => o.Status),
+            "pickupaddress" => sortOrder.ToLower() == "asc" 
+                ? ordersQuery.OrderBy(o => o.PickupLocationAddress) 
+                : ordersQuery.OrderByDescending(o => o.PickupLocationAddress),
+            "deliveryaddress" => sortOrder.ToLower() == "asc" 
+                ? ordersQuery.OrderBy(o => o.DeliveryLocationAddress) 
+                : ordersQuery.OrderByDescending(o => o.DeliveryLocationAddress),
+            "createdat" => sortOrder.ToLower() == "asc" 
+                ? ordersQuery.OrderBy(o => o.CreatedAt) 
+                : ordersQuery.OrderByDescending(o => o.CreatedAt),
+            _ => ordersQuery.OrderByDescending(o => o.CreatedAt)
+        };
+
+        var orders = ordersQuery.ToList();
+
+        ViewBag.SortBy = sortBy;
+        ViewBag.SortOrder = sortOrder;
+        ViewBag.NextSortOrder = sortOrder.ToLower() == "asc" ? "desc" : "asc";
+
+        return View(orders);
+    }
+
+    // ===== MANAGE CUSTOMERS =====
+    public IActionResult ManageCustomers(string sortBy = "CreatedAt", string sortOrder = "desc")
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var customersQuery = _context.Users
+            .Where(u => !u.IsDeleted && u.Role == Role.Customer)
+            .Include(u => u.Profile);
+
+        IQueryable<User> orderedQuery;
+
+        // Apply sorting
+        switch (sortBy.ToLower())
+        {
+            case "id":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? customersQuery.OrderBy(u => u.Id) 
+                    : customersQuery.OrderByDescending(u => u.Id);
+                break;
+            case "username":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? customersQuery.OrderBy(u => u.UserName) 
+                    : customersQuery.OrderByDescending(u => u.UserName);
+                break;
+            case "email":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? customersQuery.OrderBy(u => u.Profile.Email) 
+                    : customersQuery.OrderByDescending(u => u.Profile.Email);
+                break;
+            case "phone":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? customersQuery.OrderBy(u => u.Profile.Phone) 
+                    : customersQuery.OrderByDescending(u => u.Profile.Phone);
+                break;
+            case "status":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? customersQuery.OrderBy(u => u.IsActive) 
+                    : customersQuery.OrderByDescending(u => u.IsActive);
+                break;
+            case "createdat":
+            default:
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? customersQuery.OrderBy(u => u.CreatedAt) 
+                    : customersQuery.OrderByDescending(u => u.CreatedAt);
+                break;
+        }
+
+        var customers = orderedQuery.ToList();
+
+        ViewBag.SortBy = sortBy;
+        ViewBag.SortOrder = sortOrder;
+        ViewBag.NextSortOrder = sortOrder.ToLower() == "asc" ? "desc" : "asc";
+
+        return View(customers);
+    }
+
+    // ===== MANAGE DRIVERS =====
+    public IActionResult ManageDrivers(string sortBy = "Id", string sortOrder = "asc")
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        // First get all drivers with their user IDs
+        var driversQuery = _context.Drivers
+            .Where(d => !d.IsDeleted);
+
+        IQueryable<Driver> orderedQuery;
+
+        // Apply sorting (only on Driver properties, not User properties)
+        switch (sortBy.ToLower())
+        {
+            case "id":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? driversQuery.OrderBy(d => d.Id) 
+                    : driversQuery.OrderByDescending(d => d.Id);
+                break;
+            case "licensenumber":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? driversQuery.OrderBy(d => d.LicenseNumber) 
+                    : driversQuery.OrderByDescending(d => d.LicenseNumber);
+                break;
+            case "status":
+                orderedQuery = sortOrder.ToLower() == "asc" 
+                    ? driversQuery.OrderBy(d => d.Status) 
+                    : driversQuery.OrderByDescending(d => d.Status);
+                break;
+            default:
+                orderedQuery = driversQuery.OrderBy(d => d.Id);
+                break;
+        }
+
+        var drivers = orderedQuery.ToList();
+
+        // Get associated users
+        var userIds = drivers.Select(d => d.UserId).ToList();
+        var users = _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .Include(u => u.Profile)
+            .ToDictionary(u => u.Id);
+
+        ViewBag.Users = users;
+        ViewBag.SortBy = sortBy;
+        ViewBag.SortOrder = sortOrder;
+        ViewBag.NextSortOrder = sortOrder.ToLower() == "asc" ? "desc" : "asc";
+
+        return View(drivers);
     }
 }

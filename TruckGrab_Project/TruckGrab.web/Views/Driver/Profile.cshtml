@@ -1,0 +1,137 @@
+@model TruckGrab.web.Models.Driver
+
+@{
+    ViewData["Title"] = "Driver Profile";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Driver Profile</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model != null)
+                    {
+                        <form id="profileForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="licenseNumber" class="form-label">License Number</label>
+                                        <input type="text" class="form-control" id="licenseNumber" name="licenseNumber"
+                                               value="@Model.LicenseNumber" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="licenseClass" class="form-label">License Class</label>
+                                        <input type="text" class="form-control" id="licenseClass" name="licenseClass"
+                                               value="@Model.LicenseClass" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="experienceYears" class="form-label">Experience (Years)</label>
+                                        <input type="number" class="form-control" id="experienceYears" name="experienceYears"
+                                               value="@Model.ExperienceYears" min="0" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Status</label>
+                                        <select class="form-control" id="status" name="status">
+                                            <option value="Available" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.Available)">Available</option>
+                                            <option value="OnDelivery" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.OnDelivery)">On Delivery</option>
+                                            <option value="OffDuty" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.OffDuty)">Off Duty</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="currentTruckId" class="form-label">Current Truck ID</label>
+                                        <input type="number" class="form-control" id="currentTruckId" name="currentTruckId"
+                                               value="@Model.CurrentTruckId">
+                                        <small class="form-text text-muted">Leave empty if no truck assigned</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Rating</label>
+                                        <div>
+                                            <span class="badge bg-warning fs-6">@Model.RatingAvg.ToString("0.0") ★</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                                    <a href="@Url.Action("Index", "Driver")" class="btn btn-secondary">Back to Dashboard</a>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <h4>Profile Not Found</h4>
+                            <p>You need to complete your driver profile to start accepting orders.</p>
+                            <a href="@Url.Action("CreateProfile", "Driver")" class="btn btn-primary">Create Profile</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Profile Completion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Basic Information</li>
+                        <li><i class="fas fa-check text-success"></i> License Details</li>
+                        <li><i class="fas fa-check text-success"></i> Experience</li>
+                        <li><i class="fas fa-times text-muted"></i> Profile Picture</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#profileForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const formData = {
+                    licenseNumber: $('#licenseNumber').val(),
+                    licenseClass: $('#licenseClass').val(),
+                    experienceYears: parseInt($('#experienceYears').val()),
+                    status: $('#status').val(),
+                    currentTruckId: $('#currentTruckId').val() ? parseInt($('#currentTruckId').val()) : null
+                };
+
+                fetch('/Driver/UpdateProfile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Profile updated successfully!');
+                        window.location.href = '@Url.Action("Index", "Driver")';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating your profile.');
+                });
+            });
+        });
+    </script>
+}

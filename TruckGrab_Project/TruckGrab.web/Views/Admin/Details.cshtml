@@ -1,0 +1,174 @@
+@model TruckGrab.web.Models.User
+
+@{
+    ViewData["Title"] = $"User Details - {Model.UserName}";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">User Details</h3>
+                        <a href="@Url.Action("Users", "Admin")" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Users
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Basic Information</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="150">ID:</th>
+                                    <td>@Model.Id</td>
+                                </tr>
+                                <tr>
+                                    <th>Username:</th>
+                                    <td>@Model.UserName</td>
+                                </tr>
+                                <tr>
+                                    <th>Role:</th>
+                                    <td>
+                                        <span class="badge bg-primary">@Model.Role</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                </tr>
+                                <tr>
+                                    <th>Updated:</th>
+                                    <td>@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        @if (Model.Profile != null)
+                        {
+                            <div class="col-md-6">
+                                <h5>Profile Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th width="150">Full Name:</th>
+                                        <td>@(Model.Profile.FullName ?? "Not provided")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>@(Model.Profile.Email ?? "Not provided")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone:</th>
+                                        <td>@(Model.Profile.Phone ?? "Not provided")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address:</th>
+                                        <td>@(Model.Profile.Address ?? "Not provided")</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        }
+                    </div>
+
+                    @if (Model.Driver != null)
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Driver Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th width="150">License Number:</th>
+                                        <td>@Model.Driver.LicenseNumber</td>
+                                    </tr>
+                                    <tr>
+                                        <th>License Class:</th>
+                                        <td>@Model.Driver.LicenseClass</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Experience (Years):</th>
+                                        <td>@Model.Driver.ExperienceYears</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Rating:</th>
+                                        <td>@Model.Driver.RatingAvg.ToString("F1")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td>
+                                            <span class="badge bg-@(Model.Driver.Status.ToString().ToLower() switch
+                                            {
+                                                "available" => "success",
+                                                "ondelivery" => "warning",
+                                                "offduty" => "secondary",
+                                                _ => "light"
+                                            })">
+                                                @Model.Driver.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    @if (Model.Driver.CurrentTruckId.HasValue)
+                                    {
+                                        <tr>
+                                            <th>Current Truck ID:</th>
+                                            <td>@Model.Driver.CurrentTruckId.Value</td>
+                                        </tr>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <a href="@Url.Action("Users", "Admin")" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Back to Users
+                                </a>
+
+                                @if (Model.IsActive)
+                                {
+                                    <form method="post" action="@Url.Action("ToggleUserStatus", "Admin", new { id = Model.Id })" class="d-inline">
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-pause-circle"></i> Deactivate
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form method="post" action="@Url.Action("ToggleUserStatus", "Admin", new { id = Model.Id })" class="d-inline">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-play-circle"></i> Activate
+                                        </button>
+                                    </form>
+                                }
+
+                                <form method="post" action="@Url.Action("DeleteUser", "Admin", new { id = Model.Id })"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
