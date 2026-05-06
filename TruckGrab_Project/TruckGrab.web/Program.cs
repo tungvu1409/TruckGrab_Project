@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TruckGrab.web.Data;
 using TruckGrab.web.Services.Implementation;
 using TruckGrab.web.Services.Interface;
+using TruckGrab.web.Services.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IGeolocationService, GoogleGeolocationService>();
+builder.Services.AddScoped<GeolocationHelper>();
+builder.Services.AddHttpClient<IGeolocationService, GoogleGeolocationService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
