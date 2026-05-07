@@ -7,20 +7,20 @@ public interface IOrderService
     // ========================
     // QUERY
     // ========================
-    List<Order> GetOrders(int userId);
-    (Order? Order, List<OrderStatusLog> Logs) GetOrderDetail(int orderId, int userId);
-    List<Order> GetDriverOrders(int driverId);
-    (Order? Order, List<OrderStatusLog> Logs) GetDriverOrderDetail(int orderId, int driverId);
-    List<Order> GetAvailableOrders();
+    Task<List<Order>> GetOrdersAsync(int userId);
+    Task<(Order? Order, List<OrderStatusLog> Logs)> GetOrderDetailAsync(int orderId, int userId);
+    Task<List<Order>> GetDriverOrdersAsync(int driverId);
+    Task<(Order? Order, List<OrderStatusLog> Logs)> GetDriverOrderDetailAsync(int orderId, int driverId);
+    Task<List<Order>> GetAvailableOrdersAsync();
 
     // ========================
     // COMMAND
     // ========================
-    bool CreateOrder(Order order, int userId);
-    bool UpdateOrder(Order order, int userId);
-    bool CancelOrder(int orderId, int userId, string reason);
-    bool AssignOrderToDriver(int orderId, int driverId, int assignedByUserId);
-    bool UpdateOrderStatus(int orderId, string newStatus, int changedByUserId, string note);
+    Task<bool> CreateOrderAsync(Order order, int userId);
+    Task<bool> UpdateOrderAsync(Order order, int userId);
+    Task<bool> CancelOrderAsync(int orderId, int userId, string reason);
+    Task<bool> AssignOrderToDriverAsync(int orderId, int driverId, int assignedByUserId);
+    Task<bool> UpdateOrderStatusAsync(int orderId, string newStatus, int changedByUserId, string note);
 
     // ========================
     // BUSINESS

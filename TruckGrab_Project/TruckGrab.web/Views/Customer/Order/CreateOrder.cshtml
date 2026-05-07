@@ -16,11 +16,7 @@
             <span asp-validation-for="Weight" class="text-danger"></span>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="DistanceKm" class="form-label">Distance (km)</label>
-            <input asp-for="DistanceKm" class="form-control" type="number" step="any" required />
-            <span asp-validation-for="DistanceKm" class="text-danger"></span>
-        </div>
+
 
         <div class="mb-3">
             <label asp-for="CargoType" class="form-label">Cargo Type</label>
@@ -28,20 +24,8 @@
             <span asp-validation-for="CargoType" class="text-danger"></span>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="PickupAddress" class="form-label">Pickup Address</label>
-            <input asp-for="PickupAddress" class="form-control" required />
-            <span asp-validation-for="PickupAddress" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
-            <input asp-for="DeliveryAddress" class="form-control" required />
-            <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
-        </div>
-
-        <button type="submit" class="btn btn-success">
-            Create Order
+        <button type="submit" class="btn btn-primary">
+            Next
         </button>
 
         <a class="btn btn-secondary" asp-action="Index">

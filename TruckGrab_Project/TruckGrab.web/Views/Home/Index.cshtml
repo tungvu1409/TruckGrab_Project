@@ -1,14 +1,626 @@
-﻿<div class="text-center mt-5">
-    <h1 class="display-4">Welcome</h1>
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Dashboard";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    var userName = User.Identity?.Name;
+}
 
-    <div class="mt-4">
+@if (role == "Admin")
+{
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Admin Dashboard</h1>
+        </div>
+    </div>
 
-        @if (Context.Session.GetString("UserName") == null)
-        {
-            <div class="d-flex flex-column align-items-center gap-3">
-                <h1 class="display-4">Lorem Ipsum dolor sit amet</h1>
+    <!-- Statistics Cards -->
+    <div class="row mb-4" id="statsContainer">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers">-</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        }
+        </div>
 
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Drivers</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalDrivers">-</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Orders</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalOrders">-</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalRevenue">â‚¹0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Users", "Admin")" class="btn btn-primary btn-block">
+                                <i class="fas fa-users"></i> Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Drivers", "Admin")" class="btn btn-success btn-block">
+                                <i class="fas fa-truck"></i> Manage Drivers
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Orders", "Admin")" class="btn btn-info btn-block">
+                                <i class="fas fa-shopping-cart"></i> Manage Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Trucks", "Admin")" class="btn btn-warning btn-block">
+                                <i class="fas fa-truck-moving"></i> Manage Trucks
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Order Code</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrders">
+                                <tr>
+                                    <td colspan="3" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Available Drivers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody id="availableDrivers">
+                                <tr>
+                                    <td colspan="3" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+}
+else if (role == "Driver")
+{
+    var driverName = userName ?? "Driver";
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1 class="mb-1">Hello, @(driverName)</h1>
+            <p class="text-muted mb-3">
+                Here are your latest driver stats, including rating, completed orders, and current availability.
+            </p>
+        </div>
+    </div>
+
+    <div id="driverDashboardContent">
+        <!-- Driver Info Card -->
+        <div class="row mb-4">
+
+            <!-- My Profile -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">My Profile</h5>
+                    </div>
+
+                    <div class="card-body">
+
+                        <!-- Profile Exists -->
+                        <div id="driverProfileContent" class="d-none">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>License Number:</strong> <span id="licenseNumber">-</span></p>
+                                    <p><strong>License Class:</strong> <span id="licenseClass">-</span></p>
+                                    <p><strong>Experience:</strong> <span id="experience">-</span> years</p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <p><strong>Rating:</strong> <span id="rating" class="badge bg-warning">-</span></p>
+                                    <p><strong>Status:</strong> <span id="status" class="badge">-</span></p>
+                                    <p><strong>Current Truck:</strong> <span id="currentTruck">-</span></p>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <a href="@Url.Action("Profile", "Driver")" class="btn btn-primary">
+                                    Update Profile
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- No Profile -->
+                        <div id="noDriverProfileContent" class="text-center py-5 d-none">
+                            <h5 class="mb-4">
+                                You need to create a profile to receive orders
+                            </h5>
+
+                            <a href="@Url.Action("CreateProfile", "Driver")"
+                               class="btn btn-primary">
+                                Create now!
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Quick Stats</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h3 id="totalOrders">-</h3>
+                            <p class="text-muted">Total Orders</p>
+
+                            <hr>
+
+                            <h3 id="completedOrders">-</h3>
+                            <p class="text-muted">Completed Orders</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- My Orders -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">My Recent Orders</h5>
+
+                        <a href="@Url.Action("MyOrders", "Driver")"
+                           class="btn btn-primary btn-sm">
+                            View All
+                        </a>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order Code</th>
+                                        <th>Cargo Type</th>
+                                        <th>Pickup Location</th>
+                                        <th>Delivery Location</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="recentOrders">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Orders -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Available Orders</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order Code</th>
+                                        <th>Cargo Type</th>
+                                        <th>Weight</th>
+                                        <th>Distance</th>
+                                        <th>Price</th>
+                                        <th>Pickup Time</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="availableOrders">
+                                    <tr>
+                                        <td colspan="7" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+else if (role == "Customer")
+{
+<div class="text-center mt-5">
+    @if (role == "Customer")
+    {
+        <h1 class="display-4">Welcome, @userName đŸ‘‹</h1>
+
+        <div class="mt-4">
+            <input type="text"
+                   class="form-control w-50 mx-auto"
+                   placeholder="Lorem ipsum dolor sit amet..." />
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success"
+               asp-controller="Order"
+               asp-action="Create">
+                Create Order
+            </a>
+        </div>
+    }
+
+</div>
+}
+else
+{
+    <div class="text-center mt-5">
+        <h1 class="display-4">Welcome</h1>
+        <div class="mt-4">
+            <div class="d-flex flex-column align-items-center gap-3">
+                <h1 class="display-4">Please log in to continue.</h1>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (role == "Admin")
+    {
+<script>
+        $(document).ready(function() {
+            loadDashboardStats();
+        });
+
+        function loadDashboardStats() {
+            fetch('/Admin/GetStats')
+                .then(response => response.json())
+                .then(data => {
+                    $('#totalUsers').text(data.totalUsers);
+                    $('#totalDrivers').text(data.totalDrivers);
+                    $('#totalOrders').text(data.totalOrders);
+                    $('#totalRevenue').text('â‚¹' + data.totalRevenue.toLocaleString());
+                })
+                .catch(error => console.error('Error loading stats:', error));
+        }
+    </script>
+    }
+    else if (role == "Driver")
+    {
+<script>
+        $(document).ready(function()
+        {
+            loadDriverProfile();
+        });
+
+        function loadDriverProfile()
+        {
+            fetch('/Driver/GetMyProfile')
+                .then(response =>
+                {
+                    if (response.status === 404)
+                    {
+                        showNoDriverProfile();
+                        return null;
+                    }
+
+                    if (!response.ok)
+                    {
+                        throw new Error('Failed to load driver profile');
+                    }
+
+                    return response.json();
+                })
+                .then(data =>
+                {
+                    if (!data)
+                    {
+                        return;
+                    }
+
+                    $('#driverProfileContent').removeClass('d-none');
+                    $('#noDriverProfileContent').addClass('d-none');
+
+                    $('#licenseNumber').text(data.licenseNumber || '-');
+                    $('#licenseClass').text(data.licenseClass || '-');
+                    $('#experience').text(data.experienceYears || '-');
+                    $('#rating').text(data.ratingAvg ? data.ratingAvg.toFixed(1) + ' â˜…' : '-');
+                    $('#currentTruck').text(data.currentTruckId || 'None');
+
+                    const statusBadge = $('#status');
+
+                    statusBadge.removeClass('bg-success bg-info bg-secondary');
+
+                    switch (data.status)
+                    {
+                        case 'Available':
+                            statusBadge.addClass('bg-success').text('Available');
+                            break;
+
+                        case 'OnDelivery':
+                            statusBadge.addClass('bg-info').text('On Delivery');
+                            break;
+
+                        case 'OffDuty':
+                            statusBadge.addClass('bg-secondary').text('Off Duty');
+                            break;
+
+                        default:
+                            statusBadge.addClass('bg-secondary').text(data.status || 'Unknown');
+                    }
+
+                    loadDriverOrders();
+                    loadAvailableOrders();
+                })
+                .catch(error =>
+                {
+                    console.error('Error loading profile:', error);
+                    showNoDriverProfile();
+                });
+        }
+
+        function showNoDriverProfile()
+        {
+            $('#driverProfileContent').addClass('d-none');
+            $('#noDriverProfileContent').removeClass('d-none');
+        }
+
+        function loadDriverOrders()
+        {
+            fetch('/Driver/GetMyOrders')
+                .then(response => response.json())
+                .then(data =>
+                {
+                    $('#totalOrders').text(data.totalOrders || 0);
+                    $('#completedOrders').text(data.completedOrders || 0);
+
+                    const tbody = $('#recentOrders');
+                    tbody.empty();
+
+                    if (data.recentOrders && data.recentOrders.length > 0)
+                    {
+                        data.recentOrders.forEach(order =>
+                        {
+                            const statusBadge = getStatusBadge(order.status);
+
+                            tbody.append(`
+                                <tr>
+                                    <td>${order.orderCode}</td>
+                                    <td>${order.cargoType}</td>
+                                    <td>${order.pickupLocation || '-'}</td>
+                                    <td>${order.deliveryLocation || '-'}</td>
+                                    <td>${statusBadge}</td>
+                                    <td>
+                                        <a href="/Driver/OrderDetails/${order.id}"
+                                           class="btn btn-sm btn-info">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                    else
+                    {
+                        tbody.append(`
+                            <tr>
+                                <td colspan="6" class="text-center">
+                                    No orders found
+                                </td>
+                            </tr>
+                        `);
+                    }
+                })
+                .catch(error =>
+                {
+                    console.error('Error loading orders:', error);
+                });
+        }
+
+        function loadAvailableOrders()
+        {
+            fetch('/Driver/GetAvailableOrders')
+                .then(response => response.json())
+                .then(data =>
+                {
+                    const tbody = $('#availableOrders');
+                    tbody.empty();
+
+                    if (data && data.length > 0)
+                    {
+                        data.forEach(order =>
+                        {
+                            tbody.append(`
+                                <tr>
+                                    <td>${order.orderCode}</td>
+                                    <td>${order.cargoType}</td>
+                                    <td>${order.weight} kg</td>
+                                    <td>${order.distanceKm} km</td>
+                                    <td>â‚¹${order.totalPrice.toLocaleString()}</td>
+                                    <td>
+                                        ${order.scheduledPickupTime
+                                            ? new Date(order.scheduledPickupTime).toLocaleString()
+                                            : '-'}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success"
+                                                onclick="acceptOrder(${order.id})">
+                                            Accept
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                    else
+                    {
+                        tbody.append(`
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    No available orders
+                                </td>
+                            </tr>
+                        `);
+                    }
+                })
+                .catch(error =>
+                {
+                    console.error('Error loading available orders:', error);
+                });
+        }
+
+        function acceptOrder(orderId)
+        {
+            if (confirm('Are you sure you want to accept this order?'))
+            {
+                fetch(`/Driver/AcceptOrder/${orderId}`,
+                {
+                    method: 'POST',
+                    headers:
+                    {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data =>
+                {
+                    if (data.success)
+                    {
+                        location.reload();
+                    }
+                    else
+                    {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function getStatusBadge(status)
+        {
+            const badges =
+            {
+                'Pending': '<span class="badge bg-warning">Pending</span>',
+                'Confirmed': '<span class="badge bg-info">Confirmed</span>',
+                'OnTheWay': '<span class="badge bg-primary">On The Way</span>',
+                'Completed': '<span class="badge bg-success">Completed</span>',
+                'Cancelled': '<span class="badge bg-danger">Cancelled</span>'
+            };
+
+            return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+        }
+    </script>
+    }
+}

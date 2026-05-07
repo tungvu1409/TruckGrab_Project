@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using TruckGrab.web.Models;
 using TruckGrab.web.Data;
 
-namespace TruckGrab.web.Controllers;
+namespace TruckGrab.web.Controllers;    
 
+[Route("")]
+[Route("Home")]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
@@ -16,11 +18,19 @@ public class HomeController : Controller
         _context = context;
     }
 
+    [HttpGet("/")]
+    public IActionResult Root()
+    {
+        return Redirect("/Home/Index");
+    }
+
+    [HttpGet("Index")]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet("Privacy")]
     public IActionResult Privacy()
     {
         return View();

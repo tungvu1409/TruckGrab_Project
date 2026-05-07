@@ -8,10 +8,12 @@ namespace TruckGrab.web.Services.Implementation;
 public class OrderService : IOrderService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IGeolocationService _geolocationService;
 
-    public OrderService(ApplicationDbContext context)
+    public OrderService(ApplicationDbContext context, IGeolocationService geolocationService)
     {
         _context = context;
+        _geolocationService = geolocationService;
     }
 
     private static class OrderStatus
@@ -29,40 +31,40 @@ public class OrderService : IOrderService
     // ========================
     // GET LIST
     // ========================
-    public List<Order> GetOrders(int userId)
+    public async Task<List<Order>> GetOrdersAsync(int userId)
     {
-        return _context.Orders
+        return await _context.Orders
             .Where(o => !o.IsDeleted && o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAt)
-            .ToList();
+            .ToListAsync();
     }
 
     // ========================
     // GET DETAIL
     // ========================
-    public (Order?, List<OrderStatusLog>) GetOrderDetail(int id, int userId)
+    public async Task<(Order?, List<OrderStatusLog>)> GetOrderDetailAsync(int id, int userId)
     {
-        var order = _context.Orders
-            .FirstOrDefault(o => o.Id == id && !o.IsDeleted);
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted);
 
         if (order == null || order.CustomerId != userId)
             return (null, new List<OrderStatusLog>());
 
-        var pickupLocation = _context.Locations
-            .FirstOrDefault(l => l.Id == order.PickupLocId);
+        var pickupLocation = await _context.Locations
+            .FirstOrDefaultAsync(l => l.Id == order.PickupLocId);
 
-        var deliveryLocation = _context.Locations
-            .FirstOrDefault(l => l.Id == order.DeliveryLocId);
+        var deliveryLocation = await _context.Locations
+            .FirstOrDefaultAsync(l => l.Id == order.DeliveryLocId);
 
         order.PickupLocationAddress = pickupLocation?.Address ?? string.Empty;
         order.DeliveryLocationAddress = deliveryLocation?.Address ?? string.Empty;
         order.PickupAddress = order.PickupLocationAddress;
         order.DeliveryAddress = order.DeliveryLocationAddress;
 
-        var logs = _context.OrderStatusLogs
+        var logs = await _context.OrderStatusLogs
             .Where(l => l.OrderId == id)
             .OrderByDescending(l => l.Timestamp)
-            .ToList();
+            .ToListAsync();
 
         return (order, logs);
     }
@@ -70,29 +72,33 @@ public class OrderService : IOrderService
     // ========================
     // GET DRIVER ORDER DETAIL
     // ========================
-    public (Order?, List<OrderStatusLog>) GetDriverOrderDetail(int orderId, int driverId)
+    public async Task<(Order?, List<OrderStatusLog>)> GetDriverOrderDetailAsync(int orderId, int driverId)
     {
-        var order = _context.Orders
-            .FirstOrDefault(o => o.Id == orderId && !o.IsDeleted && o.DriverId == driverId);
+        var hasTrip = await _context.Trips.AnyAsync(t => t.OrderId == orderId && t.DriverId == driverId);
+        if (!hasTrip)
+            return (null, new List<OrderStatusLog>());
+
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted);
 
         if (order == null)
             return (null, new List<OrderStatusLog>());
 
-        var pickupLocation = _context.Locations
-            .FirstOrDefault(l => l.Id == order.PickupLocId);
+        var pickupLocation = await _context.Locations
+            .FirstOrDefaultAsync(l => l.Id == order.PickupLocId);
 
-        var deliveryLocation = _context.Locations
-            .FirstOrDefault(l => l.Id == order.DeliveryLocId);
+        var deliveryLocation = await _context.Locations
+            .FirstOrDefaultAsync(l => l.Id == order.DeliveryLocId);
 
         order.PickupLocationAddress = pickupLocation?.Address ?? string.Empty;
         order.DeliveryLocationAddress = deliveryLocation?.Address ?? string.Empty;
         order.PickupAddress = order.PickupLocationAddress;
         order.DeliveryAddress = order.DeliveryLocationAddress;
 
-        var logs = _context.OrderStatusLogs
+        var logs = await _context.OrderStatusLogs
             .Where(l => l.OrderId == orderId)
             .OrderByDescending(l => l.Timestamp)
-            .ToList();
+            .ToListAsync();
 
         return (order, logs);
     }
@@ -100,23 +106,25 @@ public class OrderService : IOrderService
     // ========================
     // GET DRIVER ORDERS
     // ========================
-    public List<Order> GetDriverOrders(int driverId)
+    public async Task<List<Order>> GetDriverOrdersAsync(int driverId)
     {
-        return _context.Orders
-            .Where(o => !o.IsDeleted && o.DriverId == driverId)
+        var orderIds = await _context.Trips.Where(t => t.DriverId == driverId).Select(t => t.OrderId).ToListAsync();
+        return await _context.Orders
+            .Where(o => !o.IsDeleted && orderIds.Contains(o.Id))
             .OrderByDescending(o => o.CreatedAt)
-            .ToList();
+            .ToListAsync();
     }
 
     // ========================
     // GET AVAILABLE ORDERS
     // ========================
-    public List<Order> GetAvailableOrders()
+    public async Task<List<Order>> GetAvailableOrdersAsync()
     {
-        return _context.Orders
-            .Where(o => !o.IsDeleted && o.Status == OrderStatus.Pending && o.DriverId == null)
+        var assignedOrderIds = await _context.Trips.Select(t => t.OrderId).Distinct().ToListAsync();
+        return await _context.Orders
+            .Where(o => !o.IsDeleted && o.Status == OrderStatus.Pending && !assignedOrderIds.Contains(o.Id))
             .OrderBy(o => o.CreatedAt)
-            .ToList();
+            .ToListAsync();
     }
 
     // ========================
@@ -134,25 +142,30 @@ public class OrderService : IOrderService
             .Substring(0, 12);
     }
 
-    private int GetOrCreateLocation(string address)
+    private async Task<int> GetOrCreateLocationAsync(string address)
     {
-        var location = _context.Locations
-            .FirstOrDefault(l => l.Address == address);
+        var location = await _context.Locations
+            .FirstOrDefaultAsync(l => l.Address == address);
 
         if (location != null)
             return location.Id;
+
+        // Geocode the address
+        var geocodeResult = await _geolocationService.GeocodeAddressAsync(address);
+        if (!geocodeResult.Success || geocodeResult.Coordinates == null)
+            throw new Exception($"Failed to geocode address: {address}");
 
         var newLocation = new Location
         {
             Name = address,
             Address = address,
-            Lat = 0,
-            Lng = 0,
+            Lat = geocodeResult.Coordinates.Latitude,
+            Lng = geocodeResult.Coordinates.Longitude,
             Type = LocationType.CustomerPoint
         };
 
         _context.Locations.Add(newLocation);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         // Ensure the ID is populated after save
         if (newLocation.Id <= 0)
@@ -161,10 +174,10 @@ public class OrderService : IOrderService
         return newLocation.Id;
     }
 
-    public bool CreateOrder(Order model, int userId)
+    public async Task<bool> CreateOrderAsync(Order model, int userId)
     {
         // Validate that the customer (user) exists
-        var customerExists = _context.Users.Any(u => u.Id == userId && !u.IsDeleted);
+        var customerExists = await _context.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
         if (!customerExists)
             throw new Exception("Customer not found");
 
@@ -173,8 +186,8 @@ public class OrderService : IOrderService
         if (string.IsNullOrWhiteSpace(model.PickupAddress) || string.IsNullOrWhiteSpace(model.DeliveryAddress))
             throw new Exception("Pickup and delivery addresses are required");
 
-        model.PickupLocId = GetOrCreateLocation(model.PickupAddress);
-        model.DeliveryLocId = GetOrCreateLocation(model.DeliveryAddress);
+        model.PickupLocId = await GetOrCreateLocationAsync(model.PickupAddress);
+        model.DeliveryLocId = await GetOrCreateLocationAsync(model.DeliveryAddress);
 
         model.OrderCode = GenerateOrderCode();
         model.Status = OrderStatus.Pending;
@@ -187,10 +200,26 @@ public class OrderService : IOrderService
         if (model.PickupLocId <= 0 || model.DeliveryLocId <= 0)
             throw new Exception("Invalid pickup/delivery location");
 
+        var pickupLoc = await _context.Locations.FindAsync(model.PickupLocId);
+        var deliveryLoc = await _context.Locations.FindAsync(model.DeliveryLocId);
+
+        if (pickupLoc != null && deliveryLoc != null)
+        {
+            var distanceResult = await _geolocationService.GetDistanceAsync(
+                new GeoPoint { Latitude = pickupLoc.Lat, Longitude = pickupLoc.Lng },
+                new GeoPoint { Latitude = deliveryLoc.Lat, Longitude = deliveryLoc.Lng }
+            );
+
+            if (distanceResult.Success)
+            {
+                model.DistanceKm = distanceResult.DistanceMeters / 1000m;
+            }
+        }
+
         model.TotalPrice = CalculatePrice(model.DistanceKm, model.CargoType, model.Weight);
 
         _context.Orders.Add(model);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         _context.OrderStatusLogs.Add(new OrderStatusLog
         {
@@ -202,7 +231,7 @@ public class OrderService : IOrderService
             Note = "Created"
         });
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return true;
     }
@@ -210,9 +239,9 @@ public class OrderService : IOrderService
     // ========================
     // UPDATE
     // ========================
-    public bool UpdateOrder(Order model, int userId)
+    public async Task<bool> UpdateOrderAsync(Order model, int userId)
     {
-        var order = _context.Orders.Find(model.Id);
+        var order = await _context.Orders.FindAsync(model.Id);
 
         if (order == null || order.IsDeleted)
             return false;
@@ -228,7 +257,7 @@ public class OrderService : IOrderService
         if ((order.Status == OrderStatus.Pending || order.Status == OrderStatus.Picking) && 
             !string.IsNullOrWhiteSpace(model.PickupAddress))
         {
-            order.PickupLocId = GetOrCreateLocation(model.PickupAddress);
+            order.PickupLocId = await GetOrCreateLocationAsync(model.PickupAddress);
         }
 
         // Update delivery address if status is NOT InTransit, Delivered, or Cancelled
@@ -237,7 +266,7 @@ public class OrderService : IOrderService
             order.Status != OrderStatus.Cancelled && 
             !string.IsNullOrWhiteSpace(model.DeliveryAddress))
         {
-            order.DeliveryLocId = GetOrCreateLocation(model.DeliveryAddress);
+            order.DeliveryLocId = await GetOrCreateLocationAsync(model.DeliveryAddress);
         }
 
         order.CargoType = model.CargoType;
@@ -247,16 +276,16 @@ public class OrderService : IOrderService
         order.UpdatedAt = DateTime.UtcNow;
         order.TotalPrice = CalculatePrice(model.DistanceKm, model.CargoType, model.Weight);
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
         return true;
     }
 
     // ========================
     // CANCEL
     // ========================
-    public bool CancelOrder(int id, int userId, string reason)
+    public async Task<bool> CancelOrderAsync(int id, int userId, string reason)
     {
-        var order = _context.Orders.Find(id);
+        var order = await _context.Orders.FindAsync(id);
 
         if (order == null || order.IsDeleted)
             return false;
@@ -284,7 +313,7 @@ public class OrderService : IOrderService
             Note = reason
         });
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
         return true;
     }
 
@@ -306,20 +335,31 @@ public class OrderService : IOrderService
     // ========================
     // ASSIGN ORDER TO DRIVER
     // ========================
-    public bool AssignOrderToDriver(int orderId, int driverId, int assignedByUserId)
+    public async Task<bool> AssignOrderToDriverAsync(int orderId, int driverId, int assignedByUserId)
     {
-        var order = _context.Orders.Find(orderId);
+        var order = await _context.Orders.FindAsync(orderId);
 
         if (order == null || order.IsDeleted)
             return false;
 
-        if (order.Status != OrderStatus.Pending || order.DriverId != null)
+        var isAssigned = await _context.Trips.AnyAsync(t => t.OrderId == orderId);
+        if (order.Status != OrderStatus.Pending || isAssigned)
             return false;
+
+        var driver = await _context.Drivers.FindAsync(driverId);
+        var truckId = driver?.CurrentTruckId ?? 0;
 
         var oldStatus = order.Status;
         order.Status = OrderStatus.Assigned;
-        order.DriverId = driverId;
         order.UpdatedAt = DateTime.UtcNow;
+
+        _context.Trips.Add(new Trip
+        {
+            OrderId = orderId,
+            DriverId = driverId,
+            TruckId = truckId,
+            StartTime = DateTime.UtcNow
+        });
 
         _context.OrderStatusLogs.Add(new OrderStatusLog
         {
@@ -331,16 +371,16 @@ public class OrderService : IOrderService
             Note = $"Assigned to driver {driverId}"
         });
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
         return true;
     }
 
     // ========================
     // UPDATE ORDER STATUS
     // ========================
-    public bool UpdateOrderStatus(int orderId, string newStatus, int changedByUserId, string note)
+    public async Task<bool> UpdateOrderStatusAsync(int orderId, string newStatus, int changedByUserId, string note)
     {
-        var order = _context.Orders.Find(orderId);
+        var order = await _context.Orders.FindAsync(orderId);
 
         if (order == null || order.IsDeleted)
             return false;
@@ -370,7 +410,7 @@ public class OrderService : IOrderService
             Note = note
         });
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
         return true;
     }
 }

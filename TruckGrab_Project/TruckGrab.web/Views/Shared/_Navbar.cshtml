@@ -1,6 +1,7 @@
+@using System.Security.Claims
 @{
-    var role = Context.Session.GetString("Role");
-    var userName = Context.Session.GetString("UserName");
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    var userName = User.Identity?.Name;
 }
 
 <nav class="navbar navbar-expand-sm @(role == "Admin" ? "navbar-dark bg-dark" : "navbar-light bg-white") border-bottom mb-3">

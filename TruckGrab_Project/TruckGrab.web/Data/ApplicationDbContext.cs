@@ -188,8 +188,7 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("order_code");
             entity.Property(o => o.CustomerId)
                 .HasColumnName("customer_id");
-            entity.Property(o => o.DriverId)
-                .HasColumnName("driver_id");
+
             entity.Property(o => o.PickupLocId)
                 .HasColumnName("pickup_loc_id");
             entity.Property(o => o.DeliveryLocId)

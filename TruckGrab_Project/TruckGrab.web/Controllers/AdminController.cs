@@ -5,6 +5,7 @@ using TruckGrab.web.Models;
 
 namespace TruckGrab.web.Controllers;
 
+[Route("Admin")]
 public class AdminController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -14,25 +15,18 @@ public class AdminController : Controller
         _context = context;
     }
 
-    // ========================
-    // AUTH CHECK
-    // ========================
     private IActionResult CheckAdmin()
     {
-        var role = HttpContext.Session.GetString("Role");
-
-        if (string.IsNullOrEmpty(role))
+        if (!User.Identity?.IsAuthenticated ?? true)
             return RedirectToAction("Login", "Account");
 
-        if (role != "Admin")
+        if (!User.IsInRole("Admin"))
             return Forbid();
 
         return null!;
     }
 
-    // ========================
-    // DASHBOARD
-    // ========================
+    [HttpGet("")]
     public IActionResult Index()
     {
         var auth = CheckAdmin();
@@ -44,6 +38,8 @@ public class AdminController : Controller
     // ========================
     // USERS
     // ========================
+
+    [HttpGet("Manage/Users")]
     public IActionResult Users()
     {
         var auth = CheckAdmin();
@@ -89,6 +85,8 @@ public class AdminController : Controller
     }
 
     // ===== USER DETAILS =====
+
+    [HttpGet("Manage/Users/Details/{id}")]
     public IActionResult Details(int id)
     {
         var auth = CheckAdmin();
@@ -107,6 +105,7 @@ public class AdminController : Controller
     // ========================
     // DRIVERS
     // ========================
+    [HttpGet("Manage/Drivers")]
     public IActionResult Drivers()
     {
         var auth = CheckAdmin();
@@ -122,6 +121,8 @@ public class AdminController : Controller
     // ========================
     // ORDERS
     // ========================
+
+    [HttpGet("Manage/Orders")]
     public IActionResult Orders()
     {
         var auth = CheckAdmin();
@@ -138,6 +139,7 @@ public class AdminController : Controller
     // ========================
     // TRUCKS
     // ========================
+    [HttpGet("Manage/Trucks")]
     public IActionResult Trucks()
     {
         var auth = CheckAdmin();
@@ -151,7 +153,7 @@ public class AdminController : Controller
     }
 
     // ===== CREATE TRUCK =====
-    [HttpGet]
+    [HttpGet("Manage/Trucks/Create")]
     public IActionResult CreateTruck()
     {
         var auth = CheckAdmin();
@@ -177,7 +179,7 @@ public class AdminController : Controller
     }
 
     // ===== EDIT TRUCK =====
-    [HttpGet]
+    [HttpGet("Manage/Trucks/Edit/{id}")]
     public IActionResult EditTruck(int id)
     {
         var auth = CheckAdmin();
@@ -206,6 +208,7 @@ public class AdminController : Controller
     }
 
     // ===== DELETE TRUCK =====
+    [HttpGet("Manage/Trucks/Delete/{id}")]
     public IActionResult DeleteTruck(int id)
     {
         var auth = CheckAdmin();
@@ -226,6 +229,7 @@ public class AdminController : Controller
     // ========================
 
     // ===== MANAGE ORDERS =====
+    [HttpGet("Manage/Orders")]
     public IActionResult ManageOrders(string sortBy = "CreatedAt", string sortOrder = "desc")
     {
         var auth = CheckAdmin();

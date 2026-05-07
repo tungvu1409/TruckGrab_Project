@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using TruckGrab.web.Models;
 using TruckGrab.web.Services.Interface;
+using System.Security.Claims;
 
 namespace TruckGrab.web.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class DriverController : Controller
 {
     private readonly IDriverService _driverService;
@@ -21,7 +22,10 @@ public class DriverController : Controller
 
     private int? GetCurrentUserId()
     {
-        return HttpContext.Session.GetInt32("UserId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(userIdClaim, out var id))
+            return id;
+        return null;
     }
 
     // MVC Actions
@@ -32,7 +36,7 @@ public class DriverController : Controller
         if (!userId.HasValue)
             return RedirectToAction("Login", "Account");
 
-        ViewBag.DriverName = HttpContext.Session.GetString("UserName") ?? "Driver";
+        ViewBag.DriverName = User.Identity?.Name ?? "Driver";
         var driver = await _driverService.GetDriverByUserIdAsync(userId.Value);
         ViewBag.HasDriverProfile = driver != null;
 
@@ -62,7 +66,7 @@ public class DriverController : Controller
             return RedirectToAction("CreateProfile");
 
         // Get orders assigned to this driver
-        var orders = GetDriverOrders(driver.Id);
+        var orders = await GetDriverOrdersAsync(driver.Id);
         return View(orders);
     }
 
@@ -84,7 +88,7 @@ public class DriverController : Controller
             return RedirectToAction("CreateProfile");
 
         // Get order details for driver
-        var (order, logs) = GetDriverOrderDetail(id, driver.Id);
+        var (order, logs) = await GetDriverOrderDetailAsync(id, driver.Id);
         if (order == null)
             return NotFound();
 
@@ -127,7 +131,7 @@ public class DriverController : Controller
         if (driver == null)
             return NotFound();
 
-        var orders = GetDriverOrders(driver.Id);
+        var orders = await GetDriverOrdersAsync(driver.Id);
         var recentOrders = orders.Take(5).Select(o => new
         {
             id = o.Id,
@@ -158,7 +162,7 @@ public class DriverController : Controller
             return NotFound();
 
         // Get orders that are pending and not assigned to any driver
-        var availableOrders = GetAvailableOrdersForDriver();
+        var availableOrders = await GetAvailableOrdersForDriverAsync();
         var result = availableOrders.Select(o => new
         {
             id = o.Id,
@@ -189,7 +193,7 @@ public class DriverController : Controller
 
         try
         {
-            var success = await AssignOrderToDriver(orderId, driver.Id, userId.Value);
+            var success = await AssignOrderToDriverAsync(orderId, driver.Id, userId.Value);
             if (success)
             {
                 // Update driver status to OnDelivery
@@ -254,7 +258,7 @@ public class DriverController : Controller
 
         try
         {
-            var success = await UpdateOrderStatus(orderId, driver.Id, "InTransit", userId.Value, "Delivery started");
+            var success = await UpdateOrderStatusAsync(orderId, driver.Id, "InTransit", userId.Value, "Delivery started");
             if (success)
             {
                 return Json(new { success = true, message = "Delivery started successfully" });
@@ -308,34 +312,34 @@ public class DriverController : Controller
     }
 
     // Helper methods (these would typically be in a service layer)
-    private IEnumerable<Order> GetDriverOrders(int driverId)
+    private async Task<IEnumerable<Order>> GetDriverOrdersAsync(int driverId)
     {
-        return _orderService.GetDriverOrders(driverId);
+        return await _orderService.GetDriverOrdersAsync(driverId);
     }
 
-    private (Order?, List<OrderStatusLog>) GetDriverOrderDetail(int orderId, int driverId)
+    private async Task<(Order?, List<OrderStatusLog>)> GetDriverOrderDetailAsync(int orderId, int driverId)
     {
-        return _orderService.GetDriverOrderDetail(orderId, driverId);
+        return await _orderService.GetDriverOrderDetailAsync(orderId, driverId);
     }
 
-    private IEnumerable<Order> GetAvailableOrdersForDriver()
+    private async Task<IEnumerable<Order>> GetAvailableOrdersForDriverAsync()
     {
-        return _orderService.GetAvailableOrders();
+        return await _orderService.GetAvailableOrdersAsync();
     }
 
-    private async Task<bool> AssignOrderToDriver(int orderId, int driverId, int userId)
+    private async Task<bool> AssignOrderToDriverAsync(int orderId, int driverId, int userId)
     {
-        return _orderService.AssignOrderToDriver(orderId, driverId, userId);
+        return await _orderService.AssignOrderToDriverAsync(orderId, driverId, userId);
     }
 
-    private async Task<bool> UpdateOrderStatus(int orderId, int driverId, string newStatus, int userId, string note)
+    private async Task<bool> UpdateOrderStatusAsync(int orderId, int driverId, string newStatus, int userId, string note)
     {
         // First verify the order belongs to this driver
-        var (order, _) = _orderService.GetDriverOrderDetail(orderId, driverId);
+        var (order, _) = await _orderService.GetDriverOrderDetailAsync(orderId, driverId);
         if (order == null)
             return false;
 
-        return _orderService.UpdateOrderStatus(orderId, newStatus, userId, note);
+        return await _orderService.UpdateOrderStatusAsync(orderId, newStatus, userId, note);
     }
 }
 

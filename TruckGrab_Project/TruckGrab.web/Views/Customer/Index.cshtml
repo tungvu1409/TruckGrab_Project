@@ -1,7 +1,8 @@
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Home";
-    var userName = Context.Session.GetString("UserName");
-    var role = Context.Session.GetString("Role");
+    var userName = User.Identity?.Name;
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
 }
 
 <div class="text-center mt-5">
