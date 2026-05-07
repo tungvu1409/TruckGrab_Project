@@ -3,7 +3,9 @@ using TruckGrab.web.Data;
 using TruckGrab.web.Services.Implementation;
 using TruckGrab.web.Services.Interface;
 using TruckGrab.web.Services.Helpers;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -17,17 +19,43 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IGeolocationService, GoogleGeolocationService>();
 builder.Services.AddScoped<GeolocationHelper>();
-builder.Services.AddHttpClient<IGeolocationService, GoogleGeolocationService>();
+builder.Services.AddHttpClient<IGeolocationService, OpenStreetMapGeolocationService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 
-builder.Services.AddSession();
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            context.Token = context.Request.Cookies["jwt_token"];
+            return Task.CompletedTask;
+        }
+    };
+});
 
 var app = builder.Build();
-app.UseSession();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -40,6 +68,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

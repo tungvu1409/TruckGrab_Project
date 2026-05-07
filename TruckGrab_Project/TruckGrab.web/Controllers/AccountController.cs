@@ -1,28 +1,33 @@
 using Microsoft.AspNetCore.Mvc;
 using TruckGrab.web.Data;
 using TruckGrab.web.Models;
-
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 namespace TruckGrab.web.Controllers;
 
 [Route("Account")]
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public AccountController(ApplicationDbContext context)
+    public AccountController(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     // ===== LOGIN =====
 
-    [HttpGet("login")]
+    [HttpGet("Login")]
     public IActionResult Login()
     {
         return View();
     }
 
-    [HttpPost("login")]
+    [HttpPost("Login")]
     [ValidateAntiForgeryToken]
     public IActionResult Login(string userName, string password)
     {
@@ -34,13 +39,39 @@ public class AccountController : Controller
             return View();
         }
 
-        HttpContext.Session.SetInt32("UserId", user.Id);
-        HttpContext.Session.SetString("UserName", user.UserName);
-        HttpContext.Session.SetString("Role", user.Role.ToString());
+        var jwtSettings = _configuration.GetSection("Jwt");
+        var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Role, user.Role.ToString())
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddDays(7),
+            Issuer = jwtSettings["Issuer"],
+            Audience = jwtSettings["Audience"],
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var jwtToken = tokenHandler.WriteToken(token);
+
+        Response.Cookies.Append("jwt_token", jwtToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7)
+        });
 
         return user.Role switch
         {
-            
            Role.Admin => RedirectToAction("Index", "Admin"),
             Role.Driver => RedirectToAction("Index", "Driver"),
             Role.Customer => RedirectToAction("Index", "Customer"),
@@ -48,13 +79,13 @@ public class AccountController : Controller
         };
     }
 
-    [HttpGet("register")]
+    [HttpGet("Register")]
     public IActionResult Register()
     {
         return View();
     }
 
-    [HttpPost("register")]
+    [HttpPost("Register")]
     [ValidateAntiForgeryToken]
     public IActionResult Register(string userName, string email, string password, string confirmPassword, string role)
     {
@@ -93,10 +124,10 @@ public class AccountController : Controller
     }
 
 
-    [HttpGet("logout")]
+    [HttpGet("Logout")]
     public IActionResult Logout()
     {
-        HttpContext.Session.Clear();
+        Response.Cookies.Delete("jwt_token");
         return RedirectToAction("Index", "Home");
     }
 
