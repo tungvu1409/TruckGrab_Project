@@ -44,7 +44,7 @@
                                         <td>@user.CreatedAt.ToString("yyyy-MM-dd")</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="@Url.Action("Details", "Admin", new { id = user.Id })" class="btn btn-sm btn-info">View</a>
+                                                <a href="@Url.Action("UserDetails", "Admin", new { id = user.Id })" class="btn btn-sm btn-info">View</a>
                                                 @if (user.IsActive)
                                                 {
                                                     <button class="btn btn-sm btn-warning" onclick="deactivateUser(@user.Id)">Deactivate</button>

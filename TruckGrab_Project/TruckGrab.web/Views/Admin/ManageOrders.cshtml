@@ -66,6 +66,7 @@
                                         }
                                     </a>
                                 </th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -90,6 +91,18 @@
                                     <td>@order.PickupLocationAddress</td>
                                     <td>@order.DeliveryLocationAddress</td>
                                     <td>@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>
+                                        @if (order.Status.ToLower() == "pending")
+                                        {
+                                            <a href="@Url.Action("AssignOrder", "Admin", new { id = order.Id })" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-person-plus"></i> Assign
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-secondary" disabled>Assigned</button>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>

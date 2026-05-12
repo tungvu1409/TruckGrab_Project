@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Order Success";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body py-5">
+            <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+            </div>
+            <h2 class="text-success mb-3">Order Success!</h2>
+            <h4 class="mb-4">Your order ID is <span class="fw-bold">#@ViewBag.OrderId</span></h4>
+            <p class="lead text-muted mb-4">
+                Our driver will contact you shortly to pickup the order.
+            </p>
+            <div>
+                <a class="btn btn-primary btn-lg px-4" asp-action="Orders">View My Orders</a>
+                <a class="btn btn-outline-secondary btn-lg px-4 ms-2" asp-action="Index">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>

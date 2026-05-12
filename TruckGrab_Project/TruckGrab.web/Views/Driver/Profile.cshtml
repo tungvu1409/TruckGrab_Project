@@ -37,9 +37,8 @@
                                     <div class="mb-3">
                                         <label for="status" class="form-label">Status</label>
                                         <select class="form-control" id="status" name="status">
-                                            <option value="Available" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.Available)">Available</option>
-                                            <option value="OnDelivery" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.OnDelivery)">On Delivery</option>
-                                            <option value="OffDuty" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.OffDuty)">Off Duty</option>
+                                            <option value="Active" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.Active)">Active</option>
+                                            <option value="Off" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.Active)">Off</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">

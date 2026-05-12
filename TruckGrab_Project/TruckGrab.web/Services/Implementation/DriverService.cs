@@ -68,7 +68,7 @@ public class DriverService : IDriverService
         {
             return await _context.Drivers
                 .AsNoTracking()
-                .Where(d => !d.IsDeleted && d.Status == DriverStatus.Available)
+                .Where(d => !d.IsDeleted && d.Status == DriverStatus.Active)
                 .ToListAsync();
         }
         catch (Exception ex)

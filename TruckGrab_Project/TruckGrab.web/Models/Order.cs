@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-
-
 namespace TruckGrab.web.Models;
 
 public class Order

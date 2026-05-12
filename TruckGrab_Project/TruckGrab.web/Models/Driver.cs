@@ -3,9 +3,8 @@ namespace TruckGrab.web.Models;
 
 public enum DriverStatus
 {
-    Available,
-    OnDelivery,
-    OffDuty
+    Active,
+    Off
 }
 
 public class Driver

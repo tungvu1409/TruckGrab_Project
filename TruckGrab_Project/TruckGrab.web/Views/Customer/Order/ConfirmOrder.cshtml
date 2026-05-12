@@ -1,0 +1,54 @@
+@model TruckGrab.web.Models.Order
+
+@{
+    ViewData["Title"] = "Confirm Order";
+}
+
+<div class="container mt-4">
+    <h2>Confirm Order Details</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title text-primary mb-4"><i class="bi bi-file-earmark-text"></i> Order Summary</h5>
+            <dl class="row mb-0">
+                <dt class="col-sm-3 text-muted">Pickup Address</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.PickupAddress</dd>
+
+                <dt class="col-sm-3 text-muted">Delivery Address</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.DeliveryAddress</dd>
+
+                <hr class="my-3"/>
+
+                <dt class="col-sm-3 text-muted">Cargo Type</dt>
+                <dd class="col-sm-9">@Model.CargoType</dd>
+
+                <dt class="col-sm-3 text-muted">Weight</dt>
+                <dd class="col-sm-9">@Model.Weight kg</dd>
+
+                <hr class="my-3"/>
+
+                <dt class="col-sm-3 text-muted">Estimated Distance</dt>
+                <dd class="col-sm-9">@Model.DistanceKm.ToString("0.00") km</dd>
+
+                <dt class="col-sm-3 text-primary fs-5">Estimated Price</dt>
+                <dd class="col-sm-9 text-primary fw-bold fs-5">
+                    @Model.TotalPrice.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <form method="post" asp-action="ConfirmOrderPost">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                Confirm Order
+            </button>
+
+            <a class="btn btn-outline-secondary btn-lg px-4" asp-action="SelectAddress">
+                Back
+            </a>
+        </div>
+    </form>
+</div>

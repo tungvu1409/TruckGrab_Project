@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Live Driver Map";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="container-fluid p-0">
+    <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-map-marked-alt text-primary"></i> Live Driver Tracking</h4>
+        <div>
+            <span class="badge bg-success mr-2">Online</span>
+            <span id="driverCount" class="badge bg-info">0 Drivers</span>
+            <a href="@Url.Action("Index", "Admin")" class="btn btn-sm btn-outline-light ml-3">Back to Dashboard</a>
+        </div>
+    </div>
+    <div id="adminMap" style="height: calc(100vh - 72px); width: 100%;"></div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        console.log('[GPS] Admin Live Map Script Loaded');
+        const map = L.map('adminMap').setView([10.7769, 106.7009], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let markers = {};
+
+        function updateAdminMap() {
+            fetch('/Admin/LiveDriverLocations')
+                .then(r => r.json())
+                .then(drivers => {
+                    console.log(`[GPS] Received ${drivers.length} drivers from server`, drivers);
+                    document.getElementById('driverCount').textContent = drivers.length + ' Drivers';
+                    
+                    // Track current driver IDs to remove those who went offline
+                    const currentIds = new Set(drivers.map(d => d.driverId));
+                    
+                    drivers.forEach(d => {
+                        const pos = [d.lat, d.lng];
+                        const lastSeen = new Date(d.updatedAt).toLocaleTimeString();
+                        const popupText = `<b>${d.name}</b><br>Status: ${d.status}<br>Last Update: ${lastSeen}`;
+
+                        if (markers[d.driverId]) {
+                            markers[d.driverId].setLatLng(pos).setPopupContent(popupText);
+                        } else {
+                            console.log(`[GPS] Adding marker for driver ${d.driverId}:`, pos);
+                            markers[d.driverId] = L.marker(pos, {
+                                icon: L.divIcon({
+                                    className: 'custom-div-icon',
+                                    html: `<div style='background-color:#28a745; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);'></div>`,
+                                    iconSize: [20, 20],
+                                    iconAnchor: [10, 10]
+                                })
+                            }).addTo(map).bindPopup(popupText);
+                        }
+                    });
+
+                    // Remove offline drivers
+                    Object.keys(markers).forEach(id => {
+                        if (!currentIds.has(parseInt(id))) {
+                            console.log(`[GPS] Removing offline driver ${id}`);
+                            map.removeLayer(markers[id]);
+                            delete markers[id];
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('[GPS] Error fetching driver locations:', err);
+                });
+        }
+
+        // Update every 30 seconds (admin view can be more frequent than driver push)
+        setInterval(updateAdminMap, 30000);
+        updateAdminMap();
+    </script>
+}

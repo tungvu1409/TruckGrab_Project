@@ -1,0 +1,177 @@
+@model TruckGrab.web.Models.Order
+@{
+    ViewData["Title"] = "Assign Driver - " + Model.OrderCode;
+    var recommendedDrivers = ViewBag.RecommendedDrivers as List<TruckGrab.web.Controllers.RecommendedDriverViewModel> ?? new List<TruckGrab.web.Controllers.RecommendedDriverViewModel>();
+    var pickupAddress = ViewBag.PickupAddress as string;
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("ManageOrders")">Orders</a></li>
+                    <li class="breadcrumb-item active">Assign Driver</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-4 text-gray-800">Assign Driver for Order: <span class="text-primary">@Model.OrderCode</span></h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Details -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary">
+                    <h6 class="m-0 font-weight-bold text-white">Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-xs font-weight-bold text-uppercase mb-1 text-muted">Cargo Type</label>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CargoType</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-xs font-weight-bold text-uppercase mb-1 text-muted">Weight</label>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Weight kg</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-xs font-weight-bold text-uppercase mb-1 text-muted">Distance</label>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.DistanceKm km</div>
+                    </div>
+                    <hr />
+                    <div class="mb-3">
+                        <label class="text-xs font-weight-bold text-uppercase mb-1 text-muted">Pickup Location</label>
+                        <div class="small font-weight-bold text-gray-800"><i class="bi bi-geo-alt-fill text-danger"></i> @pickupAddress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Recommendations -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4 border-left-primary">
+                <div class="card-header py-3 bg-white">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-lightning-charge-fill"></i> Smart Recommendations: Nearest Online Drivers</h6>
+                </div>
+                <div class="card-body">
+                    @if (recommendedDrivers.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Driver Name</th>
+                                        <th>Distance</th>
+                                        <th>Current Status</th>
+                                        <th class="text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var recommendation in recommendedDrivers)
+                                    {
+                                        <tr>
+                                            <td class="align-middle">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle mr-2 bg-info text-white">@recommendation.Name[0]</div>
+                                                    <div>
+                                                        <span class="font-weight-bold">@recommendation.Name</span><br />
+                                                        <small class="text-muted">ID: #@recommendation.DriverId</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <span class="badge badge-pill badge-success">@recommendation.DistanceKm.ToString("F2") km away</span>
+                                            </td>
+                                            <td class="align-middle">
+                                                <span class="badge badge-@(recommendation.Status.ToLower() == "active" ? "success" : "warning")">
+                                                    @recommendation.Status
+                                                </span>
+                                            </td>
+                                            <td class="text-right align-middle">
+                                                <form asp-action="SubmitAssignment" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="orderId" value="@Model.Id" />
+                                                    <input type="hidden" name="driverId" value="@recommendation.DriverId" />
+                                                    <button type="submit" class="btn btn-primary btn-icon-split">
+                                                        <span class="icon text-white-50">
+                                                            <i class="bi bi-check2-circle"></i>
+                                                        </span>
+                                                        <span class="text">Assign This Driver</span>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-geo-fill text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">No online drivers found nearby</h5>
+                            <p class="text-muted small">Drivers must be online and sharing their GPS location to appear here.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-secondary">Live View</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div id="assignmentMap" style="height: 400px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+</style>
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        $(document).ready(function() {
+            const pickupLat = @recommendedDrivers.FirstOrDefault()?.Lat ?? 10.7769; // Use first driver or default
+            const pickupLng = @recommendedDrivers.FirstOrDefault()?.Lng ?? 106.7009;
+            
+            // In a real app we'd get the actual pickup lat/lng from the model if available
+            // For now let's just center on the drivers
+            
+            const map = L.map('assignmentMap').setView([pickupLat, pickupLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            @foreach (var d in recommendedDrivers)
+            {
+                <text>
+                L.marker([@d.Lat, @d.Lng])
+                    .addTo(map)
+                    .bindPopup("<b>Driver: @d.Name</b><br>Distance: @d.DistanceKm.ToString("F2") km");
+                </text>
+            }
+        });
+    </script>
+}

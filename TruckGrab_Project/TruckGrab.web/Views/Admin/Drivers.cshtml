@@ -45,14 +45,11 @@
                                         <td>
                                             @switch (driver.Status)
                                             {
-                                                case TruckGrab.web.Models.DriverStatus.Available:
-                                                    <span class="badge bg-success">Available</span>
+                                                case TruckGrab.web.Models.DriverStatus.Active:
+                                                    <span class="badge bg-success">Active</span>
                                                     break;
-                                                case TruckGrab.web.Models.DriverStatus.OnDelivery:
-                                                    <span class="badge bg-info">On Delivery</span>
-                                                    break;
-                                                case TruckGrab.web.Models.DriverStatus.OffDuty:
-                                                    <span class="badge bg-secondary">Off Duty</span>
+                                                case TruckGrab.web.Models.DriverStatus.Off:
+                                                    <span class="badge bg-info">Off</span>
                                                     break;
                                             }
                                         </td>

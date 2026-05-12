@@ -7,16 +7,18 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 namespace TruckGrab.web.Controllers;
 
-[Route("Account")]
+[Route("[controller]")]
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IWebHostEnvironment _env;
 
-    public AccountController(ApplicationDbContext context, IConfiguration configuration)
+    public AccountController(ApplicationDbContext context, IConfiguration configuration, IWebHostEnvironment env)
     {
         _context = context;
         _configuration = configuration;
+        _env = env;
     }
 
     // ===== LOGIN =====
@@ -65,8 +67,8 @@ public class AccountController : Controller
         Response.Cookies.Append("jwt_token", jwtToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = !_env.IsDevelopment(), // Only require HTTPS in production
+            SameSite = SameSiteMode.Lax,
             Expires = DateTime.UtcNow.AddDays(7)
         });
 

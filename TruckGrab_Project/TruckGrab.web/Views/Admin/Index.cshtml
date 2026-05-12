@@ -90,23 +90,28 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("Users", "Admin")" class="btn btn-primary btn-block">
+                            <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-primary btn-block">
                                 <i class="fas fa-users"></i> Manage Users
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("Drivers", "Admin")" class="btn btn-success btn-block">
+                            <a href="@Url.Action("ManageDrivers", "Admin")" class="btn btn-success btn-block">
                                 <i class="fas fa-truck"></i> Manage Drivers
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("Orders", "Admin")" class="btn btn-info btn-block">
+                            <a href="@Url.Action("ManageOrders", "Admin")" class="btn btn-info btn-block">
                                 <i class="fas fa-shopping-cart"></i> Manage Orders
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
                             <a href="@Url.Action("Trucks", "Admin")" class="btn btn-warning btn-block">
                                 <i class="fas fa-truck-moving"></i> Manage Trucks
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("LiveMap", "Admin")" class="btn btn-dark btn-block shadow-sm">
+                                <i class="fas fa-map-marked-alt"></i> Live Driver Map
                             </a>
                         </div>
                     </div>
@@ -175,6 +180,7 @@
     <script>
         $(document).ready(function() {
             loadDashboardStats();
+            loadRecentActivity();
         });
 
         function loadDashboardStats() {
@@ -187,6 +193,35 @@
                     $('#totalRevenue').text('₹' + data.totalRevenue.toLocaleString());
                 })
                 .catch(error => console.error('Error loading stats:', error));
+        }
+
+        function loadRecentActivity() {
+            fetch('/Admin/GetRecentActivity')
+                .then(response => response.json())
+                .then(data => {
+                    // Load Recent Orders
+                    const orderBody = $('#recentOrders');
+                    orderBody.empty();
+                    if (data.recentOrders.length === 0) {
+                        orderBody.append('<tr><td colspan="3" class="text-center">No recent orders</td></tr>');
+                    } else {
+                        data.recentOrders.forEach(o => {
+                            orderBody.append(`<tr><td>${o.orderCode}</td><td><span class="badge badge-info">${o.status}</span></td><td>${o.createdAt}</td></tr>`);
+                        });
+                    }
+
+                    // Load Available Drivers
+                    const driverBody = $('#availableDrivers');
+                    driverBody.empty();
+                    if (data.availableDrivers.length === 0) {
+                        driverBody.append('<tr><td colspan="3" class="text-center">No active drivers</td></tr>');
+                    } else {
+                        data.availableDrivers.forEach(d => {
+                            driverBody.append(`<tr><td>${d.name}</td><td><span class="badge badge-success">${d.status}</span></td><td>${d.rating.toFixed(1)} ★</td></tr>`);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error loading activity:', error));
         }
     </script>
 }

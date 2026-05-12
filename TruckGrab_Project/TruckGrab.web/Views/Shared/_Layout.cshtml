@@ -24,5 +24,57 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
+
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Driver"))
+    {
+        <script>
+            (function() {
+                console.log('[GPS] Global Driver Tracking Initialized');
+                
+                let lastLat = 10.7769; // Default
+                let lastLng = 106.7009;
+
+                function sendUpdate(lat, lng) {
+                    console.log('[GPS] Sending global update:', lat, lng);
+                    fetch('/Driver/UpdateLocation', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lat: lat, lng: lng })
+                    })
+                    .catch(err => console.error('[GPS] Global update failed:', err));
+                }
+
+                // Try to get real location
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        lastLat = position.coords.latitude;
+                        lastLng = position.coords.longitude;
+                        sendUpdate(lastLat, lastLng);
+                    });
+                } else {
+                    // Fallback to default/simulated
+                    sendUpdate(lastLat, lastLng);
+                }
+
+                // Periodic updates every 60 seconds
+                setInterval(function() {
+                    if ("geolocation" in navigator) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            sendUpdate(position.coords.latitude, position.coords.longitude);
+                        }, function() {
+                            sendUpdate(lastLat, lastLng);
+                        });
+                    } else {
+                        sendUpdate(lastLat, lastLng);
+                    }
+                }, 60000);
+
+                // Go offline on logout/close
+                window.addEventListener('beforeunload', function() {
+                    fetch('/Driver/GoOffline', { method: 'POST', keepalive: true });
+                });
+            })();
+        </script>
+    }
 </body>
 </html>

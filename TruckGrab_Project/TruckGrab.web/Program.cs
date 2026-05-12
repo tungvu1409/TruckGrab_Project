@@ -22,6 +22,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<GeolocationHelper>();
 builder.Services.AddHttpClient<IGeolocationService, OpenStreetMapGeolocationService>();
 
+// In-memory GPS store — not persisted to DB
+builder.Services.AddSingleton<TruckGrab.web.Services.DriverLocationStore>();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 

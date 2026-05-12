@@ -1,5 +1,3 @@
-@model TruckGrab.web.Models.Driver
-
 @{
     ViewData["Title"] = "Create Driver Profile";
 }
@@ -22,10 +20,10 @@
                             <label for="licenseClass" class="form-label">License Class *</label>
                             <select class="form-control" id="licenseClass" name="licenseClass" required>
                                 <option value="">Select license class</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
+                                <option value="C1">C1</option>
+                                <option value="C2">C2</option>
+                                <option value="D1">FC1</option>
+                                <option value="D2">FC2</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -63,8 +61,7 @@
                     </ul>
                     <hr>
                     <p class="text-muted small">
-                        Your profile will be reviewed by our administrators before you can start accepting orders.
-                        You will receive an email notification once your account is approved.
+                        Complete your profile to start accepting delivery orders immediately.
                     </p>
                 </div>
             </div>
@@ -79,9 +76,9 @@
                 e.preventDefault();
 
                 const formData = {
-                    licenseNumber: $('#licenseNumber').val(),
+                    licenseNumber: $('#licenseNumber').val().trim(),
                     licenseClass: $('#licenseClass').val(),
-                    experienceYears: parseInt($('#experienceYears').val()),
+                    experienceYears: parseInt($('#experienceYears').val()) || 0,
                     currentTruckId: $('#currentTruckId').val() ? parseInt($('#currentTruckId').val()) : null
                 };
 
@@ -95,10 +92,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Profile created successfully! Please wait for admin approval.');
-                        window.location.href = '@Url.Action("Index", "Home")';
+                        alert('Profile created successfully!');
+                        window.location.href = '@Url.Action("Index", "Driver")';
                     } else {
-                        alert('Error: ' + data.message);
+                        alert('Error: ' + (data.message || 'Unknown error'));
                     }
                 })
                 .catch(error => {
