@@ -1,28 +1,115 @@
 @using System.Security.Claims
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Customer Dashboard";
     var userName = User.Identity?.Name;
-    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    Layout = "_DispatchLayout";
 }
 
-<div class="text-center mt-5">
-    @if (role == "Customer")
-    {
-        <h1 class="display-4">Welcome, @userName 👋</h1>
+@section Styles {
+    <style>
+        .booking-card {
+            background: linear-gradient(135deg, #1a1f2b 0%, #11141d 100%);
+            border-left: 5px solid var(--accent-orange);
+            padding: 30px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .booking-card h2 { margin: 0; font-weight: 700; color: white; }
+        .booking-card p { margin: 5px 0 0 0; color: var(--text-secondary); }
+    </style>
+}
 
-        <div class="mt-4">
-            <input type="text"
-                   class="form-control w-50 mx-auto"
-                   placeholder="Lorem ipsum dolor sit amet..." />
-        </div>
-
-        <div class="mt-4">
-            <a class="btn btn-success"
-               asp-controller="Order"
-               asp-action="Create">
-                Create Order
-            </a>
-        </div>
-    }
-
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-hand-holding-heart text-accent-purple"></i>
+        <span>Xin chào, @userName</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+        </a>
+    </div>
 </div>
+
+<!-- Booking Hero -->
+<div class="booking-card shadow-lg">
+    <div>
+        <h2>Bạn cần vận chuyển hàng?</h2>
+        <p>Đặt xe ngay để nhận báo giá tốt nhất từ các tài xế tin cậy.</p>
+    </div>
+    <a asp-controller="Customer" asp-action="CreateOrder" class="btn btn-warning btn-lg fw-bold px-5 py-3 shadow">
+        ĐẶT XE NGAY <i class="fas fa-arrow-right ms-2"></i>
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="dispatch-stats-grid">
+    <div class="dispatch-stat-card cyan">
+        <div class="stat-header">ĐƠN ĐANG GIAO</div>
+        <div class="stat-main-value" id="activeCount">0</div>
+        <div class="stat-sub-info">Theo dõi thời gian thực</div>
+    </div>
+    <div class="dispatch-stat-card green">
+        <div class="stat-header">ĐÃ HOÀN THÀNH</div>
+        <div class="stat-main-value" id="doneCount">0</div>
+        <div class="stat-sub-info">Tổng số đơn hàng</div>
+    </div>
+    <div class="dispatch-stat-card purple">
+        <div class="stat-header">ƯU ĐÃI THÀNH VIÊN</div>
+        <div class="stat-main-value">Vàng</div>
+        <div class="stat-sub-info">Giảm 5% cho đơn tiếp theo</div>
+    </div>
+</div>
+
+<div class="dashboard-content-grid">
+    <!-- Active Deliveries -->
+    <div class="map-container-card">
+        <div class="card-header-simple border-bottom border-secondary pb-2 mb-3">
+            <span><i class="fas fa-map-marked-alt me-2"></i>Theo dõi đơn hàng đang giao</span>
+        </div>
+        <div id="customerOrderList" class="flex-grow-1">
+            <div class="text-center py-5 text-secondary">
+                <i class="fas fa-truck-ramp-box fs-1 mb-3 opacity-25"></i>
+                <p>Không có đơn hàng nào đang trong quá trình vận chuyển.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Info -->
+    <div class="orders-panel">
+        <div class="card-header-simple border-bottom border-secondary pb-2 mb-2">
+            <span><i class="fas fa-circle-info me-2"></i>Thông tin hữu ích</span>
+        </div>
+        <div class="p-2">
+            <div class="card bg-secondary bg-opacity-10 border-0 mb-3">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold"><i class="fas fa-shield-halved text-success me-2"></i>Bảo hiểm hàng hóa</h6>
+                    <small class="text-secondary">Tất cả đơn hàng đều được bảo hiểm mặc định lên đến 50 triệu VNĐ.</small>
+                </div>
+            </div>
+            <div class="card bg-secondary bg-opacity-10 border-0 mb-3">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold"><i class="fas fa-headset text-primary me-2"></i>Hỗ trợ 24/7</h6>
+                    <small class="text-secondary">Hotline: 1900 xxxx. Chúng tôi luôn sẵn sàng hỗ trợ bạn.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadSummary();
+        });
+        function loadSummary() {
+            fetch('/Customer/GetOrdersJson').then(r => r.json()).catch(() => {
+                $('#activeCount').text(0);
+                $('#doneCount').text(0);
+            });
+        }
+    </script>
+}

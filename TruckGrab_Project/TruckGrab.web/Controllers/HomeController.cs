@@ -27,6 +27,16 @@ public class HomeController : Controller
     [HttpGet("Index")]
     public IActionResult Index()
     {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("Index", "Admin");
+            if (User.IsInRole("Driver"))
+                return RedirectToAction("Index", "Driver");
+            if (User.IsInRole("Customer"))
+                return RedirectToAction("Index", "Customer");
+        }
+        
         return View();
     }
 

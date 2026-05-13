@@ -1,227 +1,149 @@
+@using System.Security.Claims
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "Dashboard Điều Hành";
+    Layout = "_DispatchLayout";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">Admin Dashboard</h1>
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
+
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-chart-bar text-accent-orange"></i>
+        <span>Dashboard Điều Hành</span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-1"></i> Làm mới
+        </button>
+        <a href="@Url.Action("ManageOrders", "Admin")" class="btn btn-sm btn-warning fw-bold px-3">
+            <i class="fas fa-plus me-1"></i> Đơn hàng mới
+        </a>
+        <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-danger px-3">
+            <i class="fas fa-sign-out-alt me-1"></i> Đăng xuất
+        </a>
+    </div>
+</div>
+
+<div class="dispatch-stats-grid">
+    <div class="dispatch-stat-card orange">
+        <div class="stat-header">XE ĐANG HOẠT ĐỘNG</div>
+        <div class="stat-main-value" id="activeTrucksCount">0</div>
+        <div class="stat-sub-info">/ <span id="totalTrucksCount">0</span> xe tổng • <span id="readyTrucksCount">0</span> sẵn sàng</div>
+    </div>
+    <div class="dispatch-stat-card cyan">
+        <div class="stat-header">ĐƠN HÀNG CHỜ</div>
+        <div class="stat-main-value" id="pendingOrdersCount">0</div>
+        <div class="stat-sub-info">/ <span id="totalOrdersCount">0</span> đơn tổng • <span id="deliveringCount">0</span> đang giao</div>
+    </div>
+    <div class="dispatch-stat-card green">
+        <div class="stat-header">TÀI XẾ SẴN SÀNG</div>
+        <div class="stat-main-value" id="readyDriversCount">0</div>
+        <div class="stat-sub-info">/ <span id="totalDriversCount">0</span> tài xế tổng</div>
+    </div>
+    <div class="dispatch-stat-card purple">
+        <div class="stat-header">ĐÃ GIAO HÔM NAY</div>
+        <div class="stat-main-value" id="deliveredTodayCount">0</div>
+        <div class="stat-sub-info">Doanh thu: <span id="todayRevenue">0</span> đ</div>
+    </div>
+</div>
+
+<div class="dashboard-content-grid">
+    <div class="map-container-card">
+        <div class="card-header-simple">
+            <span><i class="fas fa-map-location-dot me-2"></i>Bản đồ theo dõi xe thực tế</span>
+            <button class="btn btn-xs btn-outline-secondary py-0" style="font-size: 0.7rem;">Fit</button>
+        </div>
+        <div id="dispatchLiveMap"></div>
+        <div class="map-legend">
+            <div class="legend-item"><span class="dot" style="background-color: #28c76f;"></span> Sẵn sàng</div>
+            <div class="legend-item"><span class="dot" style="background-color: #ff9f43;"></span> Đang chờ</div>
+            <div class="legend-item"><span class="dot" style="background-color: #ea5455;"></span> Bảo trì</div>
+            <div class="legend-item"><span class="dot" style="background-color: #00cfe8;"></span> Điểm giao</div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4" id="statsContainer">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Users</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers">-</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="orders-panel">
+        <div class="card-header-simple border-bottom border-secondary pb-2 mb-2">
+            <span><i class="fas fa-clipboard-list me-2"></i>Đơn hàng mới nhất</span>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Total Drivers</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalDrivers">-</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-truck fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Total Orders</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalOrders">-</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Total Revenue</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalRevenue">₹0</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-primary btn-block">
-                                <i class="fas fa-users"></i> Manage Users
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("ManageDrivers", "Admin")" class="btn btn-success btn-block">
-                                <i class="fas fa-truck"></i> Manage Drivers
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("ManageOrders", "Admin")" class="btn btn-info btn-block">
-                                <i class="fas fa-shopping-cart"></i> Manage Orders
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("Trucks", "Admin")" class="btn btn-warning btn-block">
-                                <i class="fas fa-truck-moving"></i> Manage Trucks
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="@Url.Action("LiveMap", "Admin")" class="btn btn-dark btn-block shadow-sm">
-                                <i class="fas fa-map-marked-alt"></i> Live Driver Map
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Recent Orders</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Order Code</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentOrders">
-                                <tr>
-                                    <td colspan="3" class="text-center">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Available Drivers</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th>Rating</th>
-                                </tr>
-                            </thead>
-                            <tbody id="availableDrivers">
-                                <tr>
-                                    <td colspan="3" class="text-center">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div id="latestOrdersList" class="flex-grow-1">
+            <div class="text-center py-5 text-secondary">Đang tải dữ liệu...</div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        let map, markers = {};
+
         $(document).ready(function() {
-            loadDashboardStats();
-            loadRecentActivity();
+            initMap();
+            loadDashboardData();
+            setInterval(loadDashboardData, 30000);
         });
 
-        function loadDashboardStats() {
-            fetch('/Admin/GetStats')
-                .then(response => response.json())
-                .then(data => {
-                    $('#totalUsers').text(data.totalUsers);
-                    $('#totalDrivers').text(data.totalDrivers);
-                    $('#totalOrders').text(data.totalOrders);
-                    $('#totalRevenue').text('₹' + data.totalRevenue.toLocaleString());
-                })
-                .catch(error => console.error('Error loading stats:', error));
+        function initMap() {
+            map = L.map('dispatchLiveMap').setView([10.7769, 106.7009], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OSM',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
         }
 
-        function loadRecentActivity() {
-            fetch('/Admin/GetRecentActivity')
-                .then(response => response.json())
+        function loadDashboardData() {
+            fetch('/Admin/GetStats')
+                .then(r => r.json())
                 .then(data => {
-                    // Load Recent Orders
-                    const orderBody = $('#recentOrders');
-                    orderBody.empty();
-                    if (data.recentOrders.length === 0) {
-                        orderBody.append('<tr><td colspan="3" class="text-center">No recent orders</td></tr>');
-                    } else {
-                        data.recentOrders.forEach(o => {
-                            orderBody.append(`<tr><td>${o.orderCode}</td><td><span class="badge badge-info">${o.status}</span></td><td>${o.createdAt}</td></tr>`);
-                        });
-                    }
+                    $('#totalOrdersCount').text(data.totalOrders);
+                    $('#pendingOrdersCount').text(data.totalOrders);
+                    $('#totalDriversCount').text(data.totalDrivers);
+                    $('#readyDriversCount').text(data.totalDrivers);
+                    $('#todayRevenue').text(data.totalRevenue.toLocaleString());
+                });
 
-                    // Load Available Drivers
-                    const driverBody = $('#availableDrivers');
-                    driverBody.empty();
-                    if (data.availableDrivers.length === 0) {
-                        driverBody.append('<tr><td colspan="3" class="text-center">No active drivers</td></tr>');
-                    } else {
-                        data.availableDrivers.forEach(d => {
-                            driverBody.append(`<tr><td>${d.name}</td><td><span class="badge badge-success">${d.status}</span></td><td>${d.rating.toFixed(1)} ★</td></tr>`);
-                        });
-                    }
-                })
-                .catch(error => console.error('Error loading activity:', error));
+            fetch('/Admin/GetRecentActivity')
+                .then(r => r.json())
+                .then(data => {
+                    const list = $('#latestOrdersList');
+                    list.empty();
+                    data.recentOrders.forEach(o => {
+                        list.append(`
+                            <div class="order-item-compact">
+                                <div class="order-id-status">
+                                    <span class="order-code">${o.orderCode}</span>
+                                    <span class="order-status-pill">${o.status}</span>
+                                </div>
+                                <div class="order-company">Công ty Vận tải ${o.orderCode.split('-')[1] || 'TruckGrab'}</div>
+                                <div class="order-meta">
+                                    <i class="fas fa-cube mt-1"></i>
+                                    <span>Hàng hóa vận tải • ${o.createdAt}</span>
+                                </div>
+                            </div>
+                        `);
+                    });
+                });
+
+            fetch('/Admin/LiveDriverLocations')
+                .then(r => r.json())
+                .then(drivers => {
+                    drivers.forEach(d => {
+                        const color = d.status === 'Available' ? '#28c76f' : '#ff9f43';
+                        if (markers[d.driverId]) {
+                            markers[d.driverId].setLatLng([d.lat, d.lng]);
+                        } else {
+                            markers[d.driverId] = L.circleMarker([d.lat, d.lng], {
+                                radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.8
+                            }).addTo(map).bindPopup(`<b>${d.name}</b><br>Trạng thái: ${d.status}`);
+                        }
+                    });
+                    $('#activeTrucksCount').text(drivers.length);
+                    $('#totalTrucksCount').text(drivers.length + 2);
+                    $('#readyTrucksCount').text(drivers.filter(d => d.status === 'Available').length);
+                });
         }
     </script>
 }

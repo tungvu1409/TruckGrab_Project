@@ -1,118 +1,98 @@
 @model IEnumerable<TruckGrab.web.Models.Order>
 
 @{
-    ViewData["Title"] = "Manage Orders";
+    ViewData["Title"] = "Quản lý Đơn hàng";
+    Layout = "_DispatchLayout";
     var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
     var sortOrder = ViewBag.SortOrder as string ?? "desc";
     var nextSortOrder = ViewBag.NextSortOrder as string ?? "asc";
 }
 
-<div class="container mt-4">
-    <h2>Manage Orders</h2>
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-boxes-stacked text-accent-cyan"></i>
+        <span>Quản lý Đơn hàng</span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
+            <i class="fas fa-rotate me-1"></i> Làm mới
+        </button>
+    </div>
+</div>
 
-    <div class="card mt-3">
-        <div class="card-header">
-            <h5>All Orders</h5>
-        </div>
-        <div class="card-body">
-            @if (Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
+<div class="card bg-secondary bg-opacity-10 border-0 shadow-sm mt-3 overflow-hidden">
+    <div class="card-header border-bottom border-secondary bg-transparent py-3">
+        <h5 class="mb-0 fw-bold">Danh sách tất cả đơn hàng</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-dark mb-0 align-middle">
+                    <thead class="bg-dark bg-opacity-50">
+                        <tr>
+                            <th class="ps-3 py-3 border-secondary">
+                                <a href="@Url.Action("ManageOrders", new { sortBy = "OrderCode", sortOrder = sortBy == "OrderCode" ? nextSortOrder : "asc" })" class="text-accent-cyan text-decoration-none">
+                                    Mã đơn @if (sortBy == "OrderCode") { <i class="fas fa-sort-@(sortOrder == "asc" ? "up" : "down") ms-1"></i> }
+                                </a>
+                            </th>
+                            <th class="border-secondary">Trạng thái</th>
+                            <th class="border-secondary">Điểm bốc hàng</th>
+                            <th class="border-secondary">Điểm giao hàng</th>
+                            <th class="border-secondary">
+                                <a href="@Url.Action("ManageOrders", new { sortBy = "CreatedAt", sortOrder = sortBy == "CreatedAt" ? nextSortOrder : "desc" })" class="text-accent-cyan text-decoration-none">
+                                    Thời gian @if (sortBy == "CreatedAt") { <i class="fas fa-sort-@(sortOrder == "asc" ? "up" : "down") ms-1"></i> }
+                                </a>
+                            </th>
+                            <th class="text-center pe-3 border-secondary">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
                             <tr>
-                                <th>
-                                    <a href="@Url.Action("ManageOrders", new { sortBy = "OrderCode", sortOrder = sortBy == "OrderCode" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        Order Code
-                                        @if (sortBy == "OrderCode")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="@Url.Action("ManageOrders", new { sortBy = "Status", sortOrder = sortBy == "Status" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        Status
-                                        @if (sortBy == "Status")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="@Url.Action("ManageOrders", new { sortBy = "PickupAddress", sortOrder = sortBy == "PickupAddress" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        Pickup Location
-                                        @if (sortBy == "PickupAddress")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="@Url.Action("ManageOrders", new { sortBy = "DeliveryAddress", sortOrder = sortBy == "DeliveryAddress" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        Delivery Location
-                                        @if (sortBy == "DeliveryAddress")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="@Url.Action("ManageOrders", new { sortBy = "CreatedAt", sortOrder = sortBy == "CreatedAt" ? nextSortOrder : "desc" })" class="text-decoration-none">
-                                        Created At
-                                        @if (sortBy == "CreatedAt")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>Actions</th>
+                                <td class="ps-3 fw-bold text-accent-cyan">@order.OrderCode</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-@(order.Status.ToLower() switch
+                                    {
+                                        "pending" => "warning text-dark",
+                                        "assigned" => "info text-dark",
+                                        "picking" => "primary",
+                                        "in_transit" => "secondary",
+                                        "delivered" => "success",
+                                        "cancelled" => "danger",
+                                        _ => "light text-dark"
+                                    })">
+                                        @order.Status.ToUpper()
+                                    </span>
+                                </td>
+                                <td class="small text-secondary">@order.PickupLocationAddress</td>
+                                <td class="small text-secondary">@order.DeliveryLocationAddress</td>
+                                <td class="small">@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-center pe-3">
+                                    @if (order.Status.ToLower() == "pending")
+                                    {
+                                        <a href="@Url.Action("AssignOrder", "Admin", new { id = order.Id })" class="btn btn-xs btn-warning fw-bold py-1 px-3">
+                                            <i class="fas fa-user-plus me-1"></i> ĐIỀU PHỐI
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-xs btn-outline-secondary py-1 px-3" disabled>ĐÃ PHÂN CÔNG</button>
+                                    }
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var order in Model)
-                            {
-                                <tr>
-                                    <td>@order.OrderCode</td>
-                                    <td>
-                                        <span class="badge bg-@(order.Status.ToLower() switch
-                                        {
-                                            "pending" => "warning",
-                                            "assigned" => "info",
-                                            "picking" => "primary",
-                                            "in_transit" => "secondary",
-                                            "delivered" => "success",
-                                            "cancelled" => "danger",
-                                            _ => "light"
-                                        })">
-                                            @order.Status
-                                        </span>
-                                    </td>
-                                    <td>@order.PickupLocationAddress</td>
-                                    <td>@order.DeliveryLocationAddress</td>
-                                    <td>@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                    <td>
-                                        @if (order.Status.ToLower() == "pending")
-                                        {
-                                            <a href="@Url.Action("AssignOrder", "Admin", new { id = order.Id })" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-person-plus"></i> Assign
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-sm btn-secondary" disabled>Assigned</button>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <p class="text-muted">No orders found.</p>
-            }
-        </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-box-open fs-1 mb-3 opacity-25"></i>
+                <p class="text-secondary">Không tìm thấy đơn hàng nào.</p>
+            </div>
+        }
     </div>
 </div>

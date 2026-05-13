@@ -2,19 +2,29 @@
 @{
     var role = User.FindFirst(ClaimTypes.Role)?.Value;
     var userName = User.Identity?.Name;
+    var controller = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["Action"]?.ToString();
+    var isHome = controller == "Home" && action == "Index";
+    var useYellowNavbar = isHome && string.IsNullOrEmpty(role);
 }
 
-<nav class="navbar navbar-expand-sm @(role == "Admin" ? "navbar-dark bg-dark" : "navbar-light bg-white") border-bottom mb-3">
+<nav class="navbar navbar-expand-sm @(useYellowNavbar ? "navbar-light bg-warning" : (role == "Admin" ? "navbar-dark bg-dark" : "navbar-light bg-white")) border-bottom mb-3 shadow-sm" 
+     style="@(useYellowNavbar ? "padding: 1rem 0; border-bottom: 2px solid #e0a800 !important;" : "")">
     <div class="container-fluid">
 
-        <!-- LOGO -->
-        <a class="navbar-brand @(role == "Admin" ? "text-white" : "")"
+        <a class="navbar-brand @(role == "Admin" ? "text-white" : "fw-bold")"
            asp-controller="Home"
            asp-action="Index">
-            @(role == "Admin" ? "Admin Panel" : "TruckGrab")
+            @if (useYellowNavbar)
+            {
+                <i class="fas fa-truck-fast me-2"></i><span>TRUCKGRAB</span>
+            }
+            else
+            {
+                @(role == "Admin" ? "Admin Panel" : "TruckGrab")
+            }
         </a>
 
-        <!-- TOGGLE -->
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarMain">
@@ -23,7 +33,6 @@
 
         <div class="collapse navbar-collapse justify-content-between" id="navbarMain">
 
-            <!-- LEFT MENU -->
             <ul class="navbar-nav">
 
                 @if (role == "Admin")
@@ -37,119 +46,41 @@
                             Manage
                         </a>
 
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item"
-                                   asp-controller="Admin"
-                                   asp-action="ManageOrders">
-                                    Orders
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item"
-                                   asp-controller="Admin"
-                                   asp-action="ManageCustomers">
-                                    Customers
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item"
-                                   asp-controller="Admin"
-                                   asp-action="ManageDrivers">
-                                    Drivers
-                                </a>
-                            </li>
+                        <ul class="dropdown-menu shadow">
+                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageOrders">Orders</a></li>
+                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageCustomers">Customers</a></li>
+                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageDrivers">Drivers</a></li>
                         </ul>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link text-white"
-                           asp-controller="Admin"
-                           asp-action="Users">
-                            Users
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-white"
-                           asp-controller="Admin"
-                           asp-action="Orders">
-                            Orders
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link text-white" asp-controller="Admin" asp-action="Users">Users</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" asp-controller="Admin" asp-action="Orders">System Orders</a></li>
                 }
                 else if (role == "Driver")
                 {
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Driver"
-                           asp-action="Index">
-                            Dashboard
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Driver"
-                           asp-action="Trips">
-                            Trips
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Driver" asp-action="Index">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Driver" asp-action="MyOrders">My Orders</a></li>
                 }
                 else if (role == "Customer")
                 {
-                    <!-- Customer / Guest -->
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Customer"
-                           asp-action="Index">
-                            Home
-                        </a>
-                    </li>
-
+                    <li class="nav-item"><a class="nav-link" asp-controller="Customer" asp-action="Index">Dashboard</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle"
-                        href="#"
-                        id="orderDropdown"
-                        role="button"
-                        data-bs-toggle="dropdown">
-                            Orders
-                        </a>
-
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item"
-                                asp-controller="Customer"
-                                asp-action="Orders">
-                                    Your Orders
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item"
-                                asp-controller="Customer"
-                                asp-action="CreateOrder">
-                                    New Order
-                                </a>
-                            </li>
+                        <a class="nav-link dropdown-toggle" href="#" id="orderDropdown" role="button" data-bs-toggle="dropdown">Orders</a>
+                        <ul class="dropdown-menu shadow">
+                            <li><a class="dropdown-item" asp-controller="Customer" asp-action="Orders">Your Orders</a></li>
+                            <li><a class="dropdown-item" asp-controller="Customer" asp-action="CreateOrder">New Order</a></li>
                         </ul>
                     </li>
-
-
                 }
-
             </ul>
 
-            <!-- RIGHT AUTH -->
             <ul class="navbar-nav ms-auto">
 
                 @if (!string.IsNullOrEmpty(userName))
                 {
                     <li class="nav-item">
-                        <span class="nav-link @(role == "Admin" ? "text-white" : "")">
-                            @(role ?? "User"): @userName
+                        <span class="nav-link @(role == "Admin" ? "text-white" : "fw-bold")">
+                            <i class="fas fa-user-circle me-1"></i> @userName
                         </span>
                     </li>
 
@@ -157,24 +88,22 @@
                         <a class="nav-link @(role == "Admin" ? "text-warning" : "text-danger fw-bold")"
                            asp-controller="Account"
                            asp-action="Logout">
-                            Logout
+                            Logout <i class="fas fa-sign-out-alt ms-1"></i>
                         </a>
                     </li>
                 }
                 else
                 {
                     <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Account"
-                           asp-action="Login">
-                            Login
+                        <a class="btn @(useYellowNavbar ? "btn-dark" : "btn-primary") fw-bold px-4"
+                           asp-controller="Account" asp-action="Login">
+                            LOGIN
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Account"
-                           asp-action="Register">
+                    <li class="nav-item ms-2">
+                        <a class="nav-link fw-bold"
+                           asp-controller="Account" asp-action="Register">
                             Register
                         </a>
                     </li>

@@ -1,0 +1,158 @@
+@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TruckGrab</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/truckgrab-theme.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+    <style>
+        body { background-color: #0b0e14 !important; color: white !important; }
+        .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        nav.navbar, footer { display: none !important; }
+    </style>
+</head>
+<body class="dispatch-theme">
+    <div class="dispatch-wrapper">
+        @{
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userName = User.Identity?.Name;
+        }
+
+        <aside class="dispatch-sidebar">
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-truck-fast"></i>
+                <span>TruckGrab</span>
+            </a>
+
+            @if (role == "Admin")
+            {
+                <div class="sidebar-section-title">ĐIỀU HÀNH</div>
+                <ul class="sidebar-menu">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Admin")">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li><a href="#"><i class="fas fa-columns"></i><span>Bảng Kanban</span></a></li>
+                </ul>
+
+                <div class="sidebar-section-title">QUẢN LÝ</div>
+                <ul class="sidebar-menu">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageOrders" ? "active" : "")">
+                        <a href="@Url.Action("ManageOrders", "Admin")">
+                            <i class="fas fa-box"></i>
+                            <span>Đơn hàng</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Trucks" ? "active" : "")">
+                        <a href="@Url.Action("Trucks", "Admin")">
+                            <i class="fas fa-truck"></i>
+                            <span>Xe tải</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageDrivers" ? "active" : "")">
+                        <a href="@Url.Action("ManageDrivers", "Admin")">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Tài xế</span>
+                        </a>
+                    </li>
+                </ul>
+            }
+            else if (role == "Driver")
+            {
+                <div class="sidebar-section-title">CÁ NHÂN</div>
+                <ul class="sidebar-menu">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Driver")">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                        <a href="@Url.Action("Profile", "Driver")">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-section-title">VẬN TẢI</div>
+                <ul class="sidebar-menu">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "MyOrders" ? "active" : "")">
+                        <a href="@Url.Action("MyOrders", "Driver")">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Đơn hàng của tôi</span>
+                        </a>
+                    </li>
+                </ul>
+            }
+            else if (role == "Customer")
+            {
+                <div class="sidebar-section-title">DỊCH VỤ</div>
+                <ul class="sidebar-menu">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Customer")">
+                            <i class="fas fa-home"></i>
+                            <span>Trang chủ</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "CreateOrder" ? "active" : "")">
+                        <a href="@Url.Action("CreateOrder", "Customer")">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Đặt xe ngay</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-section-title">CÁ NHÂN</div>
+                <ul class="sidebar-menu">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Orders" ? "active" : "")">
+                        <a href="@Url.Action("Orders", "Customer")">
+                            <i class="fas fa-box-open"></i>
+                            <span>Đơn hàng của tôi</span>
+                        </a>
+                    </li>
+                </ul>
+            }
+
+            <div class="sidebar-user-profile mt-auto pt-3 border-top border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar-small bg-warning text-dark fw-bold rounded-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        @(userName?[0].ToString().ToUpper() ?? "U")
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="text-white small fw-bold text-truncate" style="max-width: 120px;">@userName</div>
+                        <div class="text-secondary" style="font-size: 0.7rem;">@(role?.ToUpper()) • <span id="currentTime">--:--</span></div>
+                    </div>
+                    <a asp-controller="Account" asp-action="Logout" class="ms-auto text-secondary hover-white">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="dispatch-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function startClock() {
+            setInterval(() => {
+                $('#currentTime').text(new Date().toLocaleTimeString('en-GB'));
+            }, 1000);
+        }
+        $(document).ready(startClock);
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

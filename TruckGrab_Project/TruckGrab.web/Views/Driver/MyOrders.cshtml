@@ -1,135 +1,105 @@
 @model IEnumerable<TruckGrab.web.Models.Order>
 
 @{
-    ViewData["Title"] = "My Orders";
+    ViewData["Title"] = "Đơn hàng của tôi";
+    Layout = "_DispatchLayout";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">My Orders</h3>
-                    <a href="@Url.Action("Index", "Driver")" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-arrow-left"></i> Back to Dashboard
-                    </a>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Order Code</th>
-                                    <th>Cargo Type</th>
-                                    <th>Weight</th>
-                                    <th>Distance</th>
-                                    <th>Price</th>
-                                    <th>Status</th>
-                                    <th>Pickup Time</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model != null && Model.Any())
-                                {
-                                    @foreach (var order in Model)
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-truck-ramp-box text-accent-cyan"></i>
+        <span>Đơn hàng của tôi</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Index", "Driver")" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card bg-secondary bg-opacity-10 border-0 shadow-sm mt-3 overflow-hidden">
+    <div class="card-header border-bottom border-secondary bg-transparent py-3">
+        <h5 class="mb-0 fw-bold">Danh sách công việc của bạn</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-dark mb-0 align-middle">
+                    <thead class="bg-dark bg-opacity-50">
+                        <tr>
+                            <th class="ps-3 py-3 border-secondary">Mã đơn</th>
+                            <th class="border-secondary">Loại hàng</th>
+                            <th class="border-secondary">Khối lượng</th>
+                            <th class="border-secondary">Quãng đường</th>
+                            <th class="border-secondary">Trạng thái</th>
+                            <th class="border-secondary">Thời gian bốc</th>
+                            <th class="text-center pe-3 border-secondary">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-accent-cyan">@order.OrderCode</td>
+                                <td class="small">@order.CargoType</td>
+                                <td class="small">@order.Weight kg</td>
+                                <td class="small">@order.DistanceKm km</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-@(order.Status.ToLower() switch
                                     {
-                                        <tr>
-                                            <td><strong>@order.OrderCode</strong></td>
-                                            <td>@order.CargoType</td>
-                                            <td>@order.Weight kg</td>
-                                            <td>@order.DistanceKm km</td>
-                                            <td>₹@order.TotalPrice.ToString("N2")</td>
-                                            <td>
-                                                @switch (order.Status)
-                                                {
-                                                    case "Pending":
-                                                        <span class="badge bg-warning">Pending</span>
-                                                        break;
-                                                    case "Confirmed":
-                                                        <span class="badge bg-info">Confirmed</span>
-                                                        break;
-                                                    case "OnTheWay":
-                                                        <span class="badge bg-primary">On The Way</span>
-                                                        break;
-                                                    case "Completed":
-                                                        <span class="badge bg-success">Completed</span>
-                                                        break;
-                                                    case "Cancelled":
-                                                        <span class="badge bg-danger">Cancelled</span>
-                                                        break;
-                                                    default:
-                                                        <span class="badge bg-secondary">@order.Status</span>
-                                                        break;
-                                                }
-                                            </td>
-                                            <td>@(order.ScheduledPickupTime?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
-                                            <td>
-                                                <a href="@Url.Action("OrderDetails", "Driver", new { id = order.Id })" class="btn btn-sm btn-info">View Details</a>
-                                                @if (order.Status == "Confirmed")
-                                                {
-                                                    <button class="btn btn-sm btn-success" onclick="startDelivery(@order.Id)">Start Delivery</button>
-                                                }
-                                                else if (order.Status == "OnTheWay")
-                                                {
-                                                    <button class="btn btn-sm btn-primary" onclick="completeDelivery(@order.Id)">Complete Delivery</button>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="8" class="text-center">No orders found</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                        "pending" => "warning text-dark",
+                                        "confirmed" => "info text-dark",
+                                        "ontheway" => "primary",
+                                        "completed" => "success",
+                                        "cancelled" => "danger",
+                                        _ => "light text-dark"
+                                    })">
+                                        @order.Status.ToUpper()
+                                    </span>
+                                </td>
+                                <td class="small text-secondary">@(order.ScheduledPickupTime?.ToString("dd/MM HH:mm") ?? "-")</td>
+                                <td class="text-center pe-3">
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("OrderDetails", "Driver", new { id = order.Id })" class="btn btn-xs btn-outline-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (order.Status == "Confirmed")
+                                        {
+                                            <button class="btn btn-xs btn-success fw-bold px-3" onclick="startDelivery(@order.Id)">BẮT ĐẦU</button>
+                                        }
+                                        else if (order.Status == "OnTheWay")
+                                        {
+                                            <button class="btn btn-xs btn-primary fw-bold px-3" onclick="completeDelivery(@order.Id)">HOÀN THÀNH</button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-clipboard-question fs-1 mb-3 opacity-25"></i>
+                <p class="text-secondary">Bạn chưa có đơn hàng nào được phân công.</p>
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
         function startDelivery(orderId) {
-            if (confirm('Are you sure you want to start delivery for this order?')) {
-                fetch(`/Driver/StartDelivery/${orderId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                });
+            if (confirm('Bạn có chắc chắn muốn bắt đầu vận chuyển đơn hàng này?')) {
+                fetch(`/Driver/StartDelivery/${orderId}`, { method: 'POST' }).then(() => location.reload());
             }
         }
-
         function completeDelivery(orderId) {
-            if (confirm('Are you sure you want to mark this delivery as completed?')) {
-                fetch(`/Driver/CompleteDelivery/${orderId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                });
+            if (confirm('Xác nhận đã giao hàng thành công?')) {
+                fetch(`/Driver/CompleteDelivery/${orderId}`, { method: 'POST' }).then(() => location.reload());
             }
         }
     </script>

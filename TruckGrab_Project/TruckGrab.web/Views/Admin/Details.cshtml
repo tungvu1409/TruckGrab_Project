@@ -1,172 +1,172 @@
 @model TruckGrab.web.Models.User
 
 @{
-    ViewData["Title"] = $"User Details - {Model.UserName}";
+    ViewData["Title"] = $"Chi tiết - {Model.UserName}";
+    Layout = "_DispatchLayout";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">User Details</h3>
-                        <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Back to Users
-                        </a>
-                    </div>
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-id-card text-accent-purple"></i>
+        <span>Hồ sơ người dùng: @Model.UserName</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <!-- User Core Info -->
+    <div class="col-lg-6">
+        <div class="card bg-secondary bg-opacity-10 border-0 rounded-4 shadow mb-4">
+            <div class="card-header bg-dark bg-opacity-25 py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-user-shield me-2"></i>Thông tin hệ thống</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-dark table-borderless align-middle mb-0">
+                    <tr>
+                        <td class="text-secondary small fw-bold py-2" style="width: 150px;">ID HỆ THỐNG</td>
+                        <td class="fw-bold">#@Model.Id</td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary small fw-bold py-2">TÊN ĐĂNG NHẬP</td>
+                        <td class="text-accent-purple fw-bold">@Model.UserName</td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary small fw-bold py-2">VAI TRÒ</td>
+                        <td>
+                            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">
+                                @Model.Role.ToString().ToUpper()
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary small fw-bold py-2">TRẠNG THÁI</td>
+                        <td>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge rounded-pill bg-success px-3">ACTIVE</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-danger px-3">INACTIVE</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary small fw-bold py-2">NGÀY TẠO</td>
+                        <td class="small">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.Profile != null)
+        {
+            <div class="card bg-secondary bg-opacity-10 border-0 rounded-4 shadow">
+                <div class="card-header bg-dark bg-opacity-25 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-address-card me-2"></i>Thông tin liên hệ</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Basic Information</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="150">ID:</th>
-                                    <td>@Model.Id</td>
-                                </tr>
-                                <tr>
-                                    <th>Username:</th>
-                                    <td>@Model.UserName</td>
-                                </tr>
-                                <tr>
-                                    <th>Role:</th>
-                                    <td>
-                                        <span class="badge bg-primary">@Model.Role</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Status:</th>
-                                    <td>
-                                        @if (Model.IsActive)
-                                        {
-                                            <span class="badge bg-success">Active</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">Inactive</span>
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Created:</th>
-                                    <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                                </tr>
-                                <tr>
-                                    <th>Updated:</th>
-                                    <td>@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                                </tr>
-                            </table>
-                        </div>
+                    <table class="table table-dark table-borderless align-middle mb-0">
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2" style="width: 150px;">HỌ VÀ TÊN</td>
+                            <td class="fw-bold">@(Model.Profile.FullName ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">EMAIL</td>
+                            <td>@(Model.Profile.Email ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">SỐ ĐIỆN THOẠI</td>
+                            <td>@(Model.Profile.Phone ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">ĐỊA CHỈ</td>
+                            <td class="small">@(Model.Profile.Address ?? "N/A")</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
 
-                        @if (Model.Profile != null)
-                        {
-                            <div class="col-md-6">
-                                <h5>Profile Information</h5>
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <th width="150">Full Name:</th>
-                                        <td>@(Model.Profile.FullName ?? "Not provided")</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Email:</th>
-                                        <td>@(Model.Profile.Email ?? "Not provided")</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Phone:</th>
-                                        <td>@(Model.Profile.Phone ?? "Not provided")</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Address:</th>
-                                        <td>@(Model.Profile.Address ?? "Not provided")</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        }
-                    </div>
+    <!-- Role Specific Info -->
+    <div class="col-lg-6">
+        @if (Model.Driver != null)
+        {
+            <div class="card bg-secondary bg-opacity-10 border-0 rounded-4 shadow mb-4" style="border-left: 4px solid var(--accent-green) !important;">
+                <div class="card-header bg-dark bg-opacity-25 py-3">
+                    <h6 class="mb-0 fw-bold text-accent-green"><i class="fas fa-truck-steering me-2"></i>Hồ sơ tài xế chuyên nghiệp</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-dark table-borderless align-middle mb-0">
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2" style="width: 150px;">SỐ BẰNG LÁI</td>
+                            <td class="fw-bold">@Model.Driver.LicenseNumber</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">HẠNG BẰNG</td>
+                            <td>@Model.Driver.LicenseClass</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">KINH NGHIỆM</td>
+                            <td>@Model.Driver.ExperienceYears năm</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">ĐÁNH GIÁ</td>
+                            <td class="text-warning fw-bold">@Model.Driver.RatingAvg.ToString("F1") <i class="fas fa-star ms-1 small"></i></td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary small fw-bold py-2">TRẠNG THÁI XE</td>
+                            <td>
+                                <span class="badge bg-@(Model.Driver.Status.ToString().ToLower() switch {
+                                    "available" => "success",
+                                    "busy" => "warning text-dark",
+                                    "offduty" => "secondary",
+                                    _ => "light"
+                                })">
+                                    @Model.Driver.Status.ToString().ToUpper()
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        }
 
-                    @if (Model.Driver != null)
+        <div class="card bg-danger bg-opacity-10 border-0 rounded-4 shadow">
+            <div class="card-header bg-danger bg-opacity-25 py-3 text-danger">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-triangle-exclamation me-2"></i>Khu vực quản trị</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-secondary mb-4">Các thay đổi dưới đây sẽ ảnh hưởng trực tiếp đến khả năng truy cập hệ thống của người dùng.</p>
+                
+                <div class="d-grid gap-2">
+                    @if (Model.IsActive)
                     {
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h5>Driver Information</h5>
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <th width="150">License Number:</th>
-                                        <td>@Model.Driver.LicenseNumber</td>
-                                    </tr>
-                                    <tr>
-                                        <th>License Class:</th>
-                                        <td>@Model.Driver.LicenseClass</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Experience (Years):</th>
-                                        <td>@Model.Driver.ExperienceYears</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Rating:</th>
-                                        <td>@Model.Driver.RatingAvg.ToString("F1")</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Status:</th>
-                                        <td>
-                                            <span class="badge bg-@(Model.Driver.Status.ToString().ToLower() switch
-                                            {
-                                                "available" => "success",
-                                                "ondelivery" => "warning",
-                                                "offduty" => "secondary",
-                                                _ => "light"
-                                            })">
-                                                @Model.Driver.Status
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    @if (Model.Driver.CurrentTruckId.HasValue)
-                                    {
-                                        <tr>
-                                            <th>Current Truck ID:</th>
-                                            <td>@Model.Driver.CurrentTruckId.Value</td>
-                                        </tr>
-                                    }
-                                </table>
-                            </div>
-                        </div>
+                        <form method="post" action="@Url.Action("ToggleUserStatus", "Admin", new { id = Model.Id })">
+                            <button type="submit" class="btn btn-warning w-100 fw-bold py-2">
+                                <i class="fas fa-pause-circle me-2"></i> TẠM KHÓA TÀI KHOẢN
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" action="@Url.Action("ToggleUserStatus", "Admin", new { id = Model.Id })">
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-2">
+                                <i class="fas fa-play-circle me-2"></i> MỞ KHÓA TÀI KHOẢN
+                            </button>
+                        </form>
                     }
 
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <div class="d-flex gap-2">
-                                <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left"></i> Back to Users
-                                </a>
-
-                                @if (Model.IsActive)
-                                {
-                                    <form method="post" action="@Url.Action("ToggleUserStatus", "Admin", new { id = Model.Id })" class="d-inline">
-                                        <button type="submit" class="btn btn-warning">
-                                            <i class="bi bi-pause-circle"></i> Deactivate
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <form method="post" action="@Url.Action("ToggleUserStatus", "Admin", new { id = Model.Id })" class="d-inline">
-                                        <button type="submit" class="btn btn-success">
-                                            <i class="bi bi-play-circle"></i> Activate
-                                        </button>
-                                    </form>
-                                }
-
-                                <form method="post" action="@Url.Action("DeleteUser", "Admin", new { id = Model.Id })"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    <form method="post" action="@Url.Action("DeleteUser", "Admin", new { id = Model.Id })" onsubmit="return confirm('Xác nhận xóa vĩnh viễn người dùng này?')">
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2 mt-2">
+                            <i class="fas fa-trash-can me-2"></i> XÓA NGƯỜI DÙNG
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

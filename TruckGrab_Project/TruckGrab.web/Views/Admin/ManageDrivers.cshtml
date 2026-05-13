@@ -1,90 +1,86 @@
 @model IEnumerable<TruckGrab.web.Models.Driver>
 
 @{
-    ViewData["Title"] = "Manage Drivers";
+    ViewData["Title"] = "Quản lý Tài xế";
+    Layout = "_DispatchLayout";
     var users = ViewBag.Users as Dictionary<int, TruckGrab.web.Models.User>;
     var sortBy = ViewBag.SortBy as string ?? "Id";
     var sortOrder = ViewBag.SortOrder as string ?? "asc";
     var nextSortOrder = ViewBag.NextSortOrder as string ?? "desc";
 }
 
-<div class="container mt-4">
-    <h2>Manage Drivers</h2>
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-id-card text-accent-green"></i>
+        <span>Quản lý Tài xế</span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
+            <i class="fas fa-rotate me-1"></i> Làm mới
+        </button>
+    </div>
+</div>
 
-    <div class="card mt-3">
-        <div class="card-header">
-            <h5>All Drivers</h5>
-        </div>
-        <div class="card-body">
-            @if (Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
+<div class="card bg-secondary bg-opacity-10 border-0 shadow-sm mt-3 overflow-hidden">
+    <div class="card-header border-bottom border-secondary bg-transparent py-3">
+        <h5 class="mb-0 fw-bold">Danh sách tất cả tài xế</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-dark mb-0 align-middle">
+                    <thead class="bg-dark bg-opacity-50">
+                        <tr>
+                            <th class="ps-3 py-3 border-secondary">
+                                <a href="@Url.Action("ManageDrivers", new { sortBy = "Id", sortOrder = sortBy == "Id" ? nextSortOrder : "asc" })" class="text-accent-green text-decoration-none">
+                                    ID @if (sortBy == "Id") { <i class="fas fa-sort-@(sortOrder == "asc" ? "up" : "down") ms-1"></i> }
+                                </a>
+                            </th>
+                            <th class="border-secondary">Họ tên</th>
+                            <th class="border-secondary">
+                                <a href="@Url.Action("ManageDrivers", new { sortBy = "LicenseNumber", sortOrder = sortBy == "LicenseNumber" ? nextSortOrder : "asc" })" class="text-accent-green text-decoration-none">
+                                    Số bằng lái @if (sortBy == "LicenseNumber") { <i class="fas fa-sort-@(sortOrder == "asc" ? "up" : "down") ms-1"></i> }
+                                </a>
+                            </th>
+                            <th class="border-secondary">Số điện thoại</th>
+                            <th class="border-secondary">Trạng thái</th>
+                            <th class="pe-3 border-secondary">Ngày đăng ký</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var driver in Model)
+                        {
+                            var user = users?.GetValueOrDefault(driver.UserId);
                             <tr>
-                                <th>
-                                    <a href="@Url.Action("ManageDrivers", new { sortBy = "Id", sortOrder = sortBy == "Id" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        ID
-                                        @if (sortBy == "Id")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>Name</th>
-                                <th>
-                                    <a href="@Url.Action("ManageDrivers", new { sortBy = "LicenseNumber", sortOrder = sortBy == "LicenseNumber" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        License Number
-                                        @if (sortBy == "LicenseNumber")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>Phone</th>
-                                <th>
-                                    <a href="@Url.Action("ManageDrivers", new { sortBy = "Status", sortOrder = sortBy == "Status" ? nextSortOrder : "asc" })" class="text-decoration-none">
-                                        Status
-                                        @if (sortBy == "Status")
-                                        {
-                                            <i class="bi bi-chevron-@(sortOrder == "asc" ? "up" : "down")"></i>
-                                        }
-                                    </a>
-                                </th>
-                                <th>Created At</th>
+                                <td class="ps-3 text-accent-green fw-bold">#@driver.Id</td>
+                                <td class="fw-bold">@(user?.Profile?.FullName ?? user?.UserName ?? "N/A")</td>
+                                <td class="small">@driver.LicenseNumber</td>
+                                <td class="small">@(user?.Profile?.Phone ?? "N/A")</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-@(driver.Status.ToString().ToLower() switch
+                                    {
+                                        "available" => "success",
+                                        "busy" => "warning text-dark",
+                                        "offduty" => "secondary",
+                                        _ => "light text-dark"
+                                    })">
+                                        @driver.Status.ToString().ToUpper()
+                                    </span>
+                                </td>
+                                <td class="small text-secondary pe-3">@(user?.CreatedAt.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var driver in Model)
-                            {
-                                var user = users?.GetValueOrDefault(driver.UserId);
-                                <tr>
-                                    <td>@driver.Id</td>
-                                    <td>@(user?.Profile?.FullName ?? user?.UserName ?? "N/A")</td>
-                                    <td>@driver.LicenseNumber</td>
-                                    <td>@(user?.Profile?.Phone ?? "N/A")</td>
-                                    <td>
-                                        <span class="badge bg-@(driver.Status.ToString().ToLower() switch
-                                        {
-                                            "available" => "success",
-                                            "ondelivery" => "warning",
-                                            "offduty" => "secondary",
-                                            _ => "light"
-                                        })">
-                                            @driver.Status
-                                        </span>
-                                    </td>
-                                    <td>@(user?.CreatedAt.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <p class="text-muted">No drivers found.</p>
-            }
-        </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-user-slash fs-1 mb-3 opacity-25"></i>
+                <p class="text-secondary">Không tìm thấy tài xế nào.</p>
+            </div>
+        }
     </div>
 </div>

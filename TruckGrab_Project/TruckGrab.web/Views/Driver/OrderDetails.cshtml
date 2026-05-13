@@ -1,137 +1,148 @@
 @model TruckGrab.web.Models.Order
 
 @{
-    ViewData["Title"] = "Order Details";
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "_DispatchLayout";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">Order Details - @Model.OrderCode</h3>
-                    <a href="@Url.Action("MyOrders", "Driver")" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-arrow-left"></i> Back to My Orders
-                    </a>
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-circle-info text-accent-cyan"></i>
+        <span>Chi tiết đơn @Model.OrderCode</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("MyOrders", "Driver")" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Danh sách đơn
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <div class="card bg-secondary bg-opacity-10 border-0 rounded-4 mb-4">
+            <div class="card-header bg-dark bg-opacity-25 py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-box me-2"></i>Thông tin hàng hóa</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Loại hàng</label>
+                            <div class="h5 fw-bold text-accent-cyan">@Model.CargoType</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Khối lượng</label>
+                            <div class="h5 fw-bold">@Model.Weight kg</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Quãng đường</label>
+                            <div class="h5 fw-bold">@Model.DistanceKm km</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Thành tiền</label>
+                            <div class="h5 fw-bold text-warning">@Model.TotalPrice.ToString("N0") đ</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Cargo Information</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Cargo Type:</strong></td>
-                                    <td>@Model.CargoType</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Weight:</strong></td>
-                                    <td>@Model.Weight kg</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Distance:</strong></td>
-                                    <td>@Model.DistanceKm km</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Total Price:</strong></td>
-                                    <td>₹@Model.TotalPrice.ToString("N2")</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Order Status</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Status:</strong></td>
-                                    <td>
-                                        @switch (Model.Status)
-                                        {
-                                            case "Pending":
-                                                <span class="badge bg-warning">Pending</span>
-                                                break;
-                                            case "Assigned":
-                                                <span class="badge bg-info">Assigned</span>
-                                                break;
-                                            case "OnTheWay":
-                                            case "InTransit":
-                                                <span class="badge bg-primary">In Transit</span>
-                                                break;
-                                            case "Delivered":
-                                                <span class="badge bg-success">Delivered</span>
-                                                break;
-                                            case "Cancelled":
-                                                <span class="badge bg-danger">Cancelled</span>
-                                                break;
-                                            default:
-                                                <span class="badge bg-secondary">@Model.Status</span>
-                                                break;
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Scheduled Pickup:</strong></td>
-                                    <td>@(Model.ScheduledPickupTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not scheduled")</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Actual Pickup:</strong></td>
-                                    <td>@(Model.ActualPickupTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not picked up")</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Actual Delivery:</strong></td>
-                                    <td>@(Model.ActualDeliveryTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not delivered")</td>
-                                </tr>
-                            </table>
-                        </div>
+
+                <hr class="border-secondary opacity-25" />
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase d-block mb-2"><i class="fas fa-location-dot text-danger me-1"></i>ĐỊA ĐIỂM BỐC HÀNG</label>
+                        <p class="mb-0 fw-bold">@Model.PickupLocationAddress</p>
                     </div>
-
-                    <hr>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Pickup Location</h5>
-                            <address>
-                                @Model.PickupLocationAddress
-                            </address>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Delivery Location</h5>
-                            <address>
-                                @Model.DeliveryLocationAddress
-                            </address>
-                        </div>
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase d-block mb-2"><i class="fas fa-flag-checkered text-success me-1"></i>ĐỊA ĐIỂM GIAO HÀNG</label>
+                        <p class="mb-0 fw-bold">@Model.DeliveryLocationAddress</p>
                     </div>
-
-                    @if (ViewBag.OrderLogs != null)
-                    {
-                        var logs = ViewBag.OrderLogs as List<TruckGrab.web.Models.OrderStatusLog>;
-                        if (logs != null && logs.Any())
-                        {
-                            <hr>
-                            <h5>Order History</h5>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Date & Time</th>
-                                            <th>Status Change</th>
-                                            <th>Note</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var log in logs)
-                                        {
-                                            <tr>
-                                                <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
-                                                <td>@log.OldStatus → @log.NewStatus</td>
-                                                <td>@log.Note</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                    }
                 </div>
             </div>
+        </div>
+
+        @if (ViewBag.OrderLogs != null)
+        {
+            var logs = ViewBag.OrderLogs as List<TruckGrab.web.Models.OrderStatusLog>;
+            if (logs != null && logs.Any())
+            {
+                <div class="card bg-secondary bg-opacity-10 border-0 rounded-4">
+                    <div class="card-header bg-dark bg-opacity-25 py-3">
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-clock-rotate-left me-2"></i>Lịch sử trạng thái</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0 small">
+                                <thead>
+                                    <tr class="text-secondary">
+                                        <th class="ps-3 border-0">THỜI GIAN</th>
+                                        <th class="border-0">THAY ĐỔI</th>
+                                        <th class="border-0">GHI CHÚ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in logs)
+                                    {
+                                        <tr>
+                                            <td class="ps-3">@log.Timestamp.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td><span class="text-accent-cyan">@log.OldStatus</span> <i class="fas fa-arrow-right mx-1 small opacity-50"></i> <span class="text-warning">@log.NewStatus</span></td>
+                                            <td class="text-secondary">@log.Note</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Sidebar Status -->
+    <div class="col-lg-4">
+        <div class="card bg-secondary bg-opacity-10 border-0 rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-dark bg-opacity-25 py-3">
+                <h6 class="mb-0 fw-bold">Trạng thái vận hành</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-4 text-center">
+                    <span class="badge rounded-pill bg-@(Model.Status.ToLower() switch {
+                        "pending" => "warning text-dark",
+                        "ontheway" => "primary",
+                        "completed" => "success",
+                        "cancelled" => "danger",
+                        _ => "info"
+                    }) px-4 py-2 fs-6">
+                        @Model.Status.ToUpper()
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Thời gian dự kiến bốc</label>
+                    <div class="fw-bold">@(Model.ScheduledPickupTime?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa sắp xếp")</div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Thời gian bốc thực tế</label>
+                    <div class="fw-bold">@(Model.ActualPickupTime?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa thực hiện")</div>
+                </div>
+                <div class="mb-0">
+                    <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Thời gian giao thực tế</label>
+                    <div class="fw-bold">@(Model.ActualDeliveryTime?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa thực hiện")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            @if (Model.Status == "Confirmed" || Model.Status == "Assigned")
+            {
+                <button class="btn btn-success fw-bold py-3">BẮT ĐẦU CHUYẾN HÀNG <i class="fas fa-truck-moving ms-2"></i></button>
+            }
+            else if (Model.Status == "OnTheWay")
+            {
+                <button class="btn btn-primary fw-bold py-3">XÁC NHẬN ĐÃ GIAO <i class="fas fa-check-double ms-2"></i></button>
+            }
         </div>
     </div>
 </div>

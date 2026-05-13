@@ -1,70 +1,49 @@
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Đăng ký";
+    Layout = "_AuthLayout";
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card mt-5">
-                <div class="card-header text-center">
-                    <h3>Register for TruckGrab</h3>
-                </div>
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger py-2 small mb-4">
+        <i class="fas fa-circle-exclamation me-2"></i> @ViewBag.Error
+    </div>
+}
 
-                <div class="card-body">
+<form method="post" asp-action="Register" class="auth-form">
+    @Html.AntiForgeryToken()
 
-                    @if (ViewBag.Error != null)
-                    {
-                        <div class="alert alert-danger">
-                            @ViewBag.Error
-                        </div>
-                    }
-
-                    <form method="post" asp-action="Register">
-
-                        @Html.AntiForgeryToken()
-
-                        <div class="mb-3">
-                            <label>Username</label>
-                            <input name="userName" class="form-control" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Email</label>
-                            <input name="email" type="email" class="form-control" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Password</label>
-                            <input name="password" type="password" class="form-control" required minlength="6" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Confirm Password</label>
-                            <input name="confirmPassword" type="password" class="form-control" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Account Type</label>
-                            <select name="role" class="form-control">
-                                <option value="Customer">Customer</option>
-                                <option value="Driver">Driver</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-success w-100">
-                            Register
-                        </button>
-
-                    </form>
-
-                    <div class="text-center mt-3">
-                        <a asp-controller="Account" asp-action="Login">
-                            Login here
-                        </a>
-                    </div>
-
-                </div>
-            </div>
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <label class="form-label">TÊN ĐĂNG NHẬP</label>
+            <input name="userName" class="form-control" placeholder="Tên đăng nhập..." required />
+        </div>
+        <div class="col-md-12 mb-3">
+            <label class="form-label">EMAIL</label>
+            <input name="email" type="email" class="form-control" placeholder="email@example.com" required />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">MẬT KHẨU</label>
+            <input name="password" type="password" class="form-control" placeholder="••••••••" required minlength="6" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">XÁC NHẬN</label>
+            <input name="confirmPassword" type="password" class="form-control" placeholder="••••••••" required />
+        </div>
+        <div class="col-md-12 mb-4">
+            <label class="form-label">LOẠI TÀI KHOẢN</label>
+            <select name="role" class="form-select">
+                <option value="Customer">Khách hàng (Cần đặt xe)</option>
+                <option value="Driver">Tài xế (Có xe vận tải)</option>
+            </select>
         </div>
     </div>
+
+    <button type="submit" class="btn btn-warning w-100 py-3 fw-bold shadow">
+        ĐĂNG KÝ TÀI KHOẢN <i class="fas fa-user-plus ms-2"></i>
+    </button>
+</form>
+
+<div class="auth-footer">
+    <p>Đã có tài khoản? <a asp-controller="Account" asp-action="Login">Đăng nhập</a></p>
 </div>

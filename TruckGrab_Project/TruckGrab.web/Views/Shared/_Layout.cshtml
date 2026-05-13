@@ -6,8 +6,10 @@
     <title>@ViewData["Title"] - TruckGrab.web</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TruckGrab.web.styles.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
 </head>
 
 <body>
@@ -15,7 +17,71 @@
         <partial name="_Navbar" />
     </header>
 
-    <div class="container">
+    @{
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    }
+
+    <!-- Bottom Navigation (Mobile Only) -->
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="mobile-nav">
+            @if (role == "Admin")
+            {
+                <a href="@Url.Action("Index", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dash</span>
+                </a>
+                <a href="@Url.Action("ManageOrders", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageOrders" ? "active" : "")">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="@Url.Action("ManageDrivers", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageDrivers" ? "active" : "")">
+                    <i class="fas fa-truck"></i>
+                    <span>Drivers</span>
+                </a>
+                <a href="@Url.Action("LiveMap", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "LiveMap" ? "active" : "")">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Map</span>
+                </a>
+            }
+            else if (role == "Driver")
+            {
+                <a href="@Url.Action("Index", "Driver")" class="mobile-nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Driver" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dash</span>
+                </a>
+                <a href="@Url.Action("MyOrders", "Driver")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyOrders" ? "active" : "")">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="@Url.Action("Profile", "Driver")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Profile</span>
+                </a>
+            }
+            else if (role == "Customer")
+            {
+                <a href="@Url.Action("Index", "Customer")" class="mobile-nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Customer" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="@Url.Action("Orders", "Customer")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Orders" ? "active" : "")">
+                    <i class="fas fa-box"></i>
+                    <span>My Orders</span>
+                </a>
+                <a href="@Url.Action("CreateOrder", "Customer")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "CreateOrder" ? "active" : "")">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New Order</span>
+                </a>
+            }
+            <a href="@Url.Action("Logout", "Account")" class="mobile-nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    }
+
+    <div class="container py-4">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

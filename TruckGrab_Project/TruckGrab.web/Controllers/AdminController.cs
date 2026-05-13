@@ -97,10 +97,6 @@ public class AdminController : Controller
         return Json(new { recentOrders, availableDrivers });
     }
 
-    // ========================
-    // MANAGE USERS  →  /Admin/Manage/Users
-    // ========================
-
     [HttpGet("Manage/Users")]
     public IActionResult ManageUsers(string sortBy = "CreatedAt", string sortOrder = "desc")
     {
@@ -179,10 +175,6 @@ public class AdminController : Controller
         return RedirectToAction("ManageUsers");
     }
 
-    // ========================
-    // MANAGE DRIVERS  →  /Admin/Manage/Drivers
-    // ========================
-
     [HttpGet("Manage/Drivers")]
     public IActionResult ManageDrivers(string sortBy = "Id", string sortOrder = "asc")
     {
@@ -214,10 +206,6 @@ public class AdminController : Controller
         return View(drivers);
     }
 
-    // ========================
-    // MANAGE ORDERS  →  /Admin/Manage/Orders
-    // ========================
-
     [HttpGet("Manage/Orders")]
     public IActionResult ManageOrders(string sortBy = "CreatedAt", string sortOrder = "desc")
     {
@@ -242,10 +230,6 @@ public class AdminController : Controller
 
         return View(orderedQuery.ToList());
     }
-
-    // ========================
-    // TRUCKS  →  /Admin/Manage/Trucks
-    // ========================
 
     [HttpGet("Manage/Trucks")]
     public IActionResult Trucks()
@@ -328,10 +312,6 @@ public class AdminController : Controller
         return RedirectToAction("Trucks");
     }
 
-    // ========================
-    // LIVE MAP  →  /Admin/LiveMap
-    // ========================
-
     [HttpGet("LiveMap")]
     public IActionResult LiveMap()
     {
@@ -347,7 +327,6 @@ public class AdminController : Controller
         var auth = CheckAdmin();
         if (auth != null) return auth;
 
-        // Read from in-memory store
         var drivers = _locationStore.GetOnlineDrivers(maxAgeMinutes: 2)
             .Select(l => new
             {
@@ -359,14 +338,8 @@ public class AdminController : Controller
                 updatedAt = l.UpdatedAt
             }).ToList();
 
-        _logger.LogInformation("[GPS] Live map requested. Found {Count} online drivers.", drivers.Count);
-
         return Json(drivers);
     }
-
-    // ========================
-    // ORDER ASSIGNMENT
-    // ========================
 
     [HttpGet("Manage/Orders/Assign/{id}")]
     public async Task<IActionResult> AssignOrder(int id)
@@ -383,16 +356,13 @@ public class AdminController : Controller
             return RedirectToAction("ManageOrders");
         }
 
-        // Get pickup location coordinates
         var pickupLoc = await _context.Locations.FindAsync(order.PickupLocId);
         if (pickupLoc == null) return BadRequest("Order has no valid pickup location.");
 
         var orderPoint = new GeoPoint { Latitude = pickupLoc.Lat, Longitude = pickupLoc.Lng };
 
-        // Get all online drivers
-        var onlineDrivers = _locationStore.GetOnlineDrivers(maxAgeMinutes: 30); // 30 mins for demo
+        var onlineDrivers = _locationStore.GetOnlineDrivers(maxAgeMinutes: 30); 
 
-        // Calculate distances
         var recommendedDrivers = onlineDrivers
             .Select(d => new
             {

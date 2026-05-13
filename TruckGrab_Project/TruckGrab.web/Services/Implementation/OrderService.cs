@@ -26,11 +26,6 @@ public class OrderService : IOrderService
         public const string Cancelled = "cancelled";
     }
 
-
-
-    // ========================
-    // GET LIST
-    // ========================
     public async Task<List<Order>> GetOrdersAsync(int userId)
     {
         return await _context.Orders
@@ -39,9 +34,6 @@ public class OrderService : IOrderService
             .ToListAsync();
     }
 
-    // ========================
-    // GET DETAIL
-    // ========================
     public async Task<(Order?, List<OrderStatusLog>)> GetOrderDetailAsync(int id, int userId)
     {
         var order = await _context.Orders
@@ -69,9 +61,6 @@ public class OrderService : IOrderService
         return (order, logs);
     }
 
-    // ========================
-    // GET DRIVER ORDER DETAIL
-    // ========================
     public async Task<(Order?, List<OrderStatusLog>)> GetDriverOrderDetailAsync(int orderId, int driverId)
     {
         var hasTrip = await _context.Trips.AnyAsync(t => t.OrderId == orderId && t.DriverId == driverId);
@@ -103,9 +92,6 @@ public class OrderService : IOrderService
         return (order, logs);
     }
 
-    // ========================
-    // GET DRIVER ORDERS
-    // ========================
     public async Task<List<Order>> GetDriverOrdersAsync(int driverId)
     {
         var orderIds = await _context.Trips.Where(t => t.DriverId == driverId).Select(t => t.OrderId).ToListAsync();
@@ -115,9 +101,6 @@ public class OrderService : IOrderService
             .ToListAsync();
     }
 
-    // ========================
-    // GET AVAILABLE ORDERS
-    // ========================
     public async Task<List<Order>> GetAvailableOrdersAsync()
     {
         var assignedOrderIds = await _context.Trips.Select(t => t.OrderId).Distinct().ToListAsync();
@@ -126,11 +109,6 @@ public class OrderService : IOrderService
             .OrderBy(o => o.CreatedAt)
             .ToListAsync();
     }
-
-    // ========================
-    // CREATE
-    // ========================
-
 
     public string GenerateOrderCode()
     {
@@ -150,7 +128,6 @@ public class OrderService : IOrderService
         if (location != null)
             return location.Id;
 
-        // Geocode the address
         var geocodeResult = await _geolocationService.GeocodeAddressAsync(address);
         if (!geocodeResult.Success || geocodeResult.Coordinates == null)
             throw new Exception($"Failed to geocode address: {address}");
@@ -167,7 +144,6 @@ public class OrderService : IOrderService
         _context.Locations.Add(newLocation);
         await _context.SaveChangesAsync();
 
-        // Ensure the ID is populated after save
         if (newLocation.Id <= 0)
             throw new Exception("Failed to generate Location ID");
 
@@ -176,7 +152,6 @@ public class OrderService : IOrderService
 
     public async Task<bool> CreateOrderAsync(Order model, int userId)
     {
-        // Validate that the customer (user) exists
         var customerExists = await _context.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
         if (!customerExists)
             throw new Exception("Customer not found");
@@ -236,9 +211,6 @@ public class OrderService : IOrderService
         return true;
     }
 
-    // ========================
-    // UPDATE
-    // ========================
     public async Task<bool> UpdateOrderAsync(Order model, int userId)
     {
         var order = await _context.Orders.FindAsync(model.Id);
@@ -249,18 +221,15 @@ public class OrderService : IOrderService
         if (order.CustomerId != userId)
             return false;
 
-        // Allow updates for orders that are not completed or cancelled
         if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
             return false;
 
-        // Update pickup address if status is Pending or Picking
         if ((order.Status == OrderStatus.Pending || order.Status == OrderStatus.Picking) && 
             !string.IsNullOrWhiteSpace(model.PickupAddress))
         {
             order.PickupLocId = await GetOrCreateLocationAsync(model.PickupAddress);
         }
 
-        // Update delivery address if status is NOT InTransit, Delivered, or Cancelled
         if (order.Status != OrderStatus.InTransit && 
             order.Status != OrderStatus.Delivered && 
             order.Status != OrderStatus.Cancelled && 
@@ -280,9 +249,6 @@ public class OrderService : IOrderService
         return true;
     }
 
-    // ========================
-    // CANCEL
-    // ========================
     public async Task<bool> CancelOrderAsync(int id, int userId, string reason)
     {
         var order = await _context.Orders.FindAsync(id);
@@ -318,23 +284,20 @@ public class OrderService : IOrderService
     }
 
     public decimal CalculatePrice(decimal distanceKm, string cargoType, decimal weight)
-{
-    decimal basePricePerKm = 10000;   
-    decimal weightRate = 2000;
-
-    decimal cargoMultiplier = cargoType switch
     {
-        "Heavy" => 1.5m,
-        "Fragile" => 1.2m,
-        _ => 1.0m
-    };
+        decimal basePricePerKm = 10000;   
+        decimal weightRate = 2000;
 
-    return (distanceKm * basePricePerKm + weight * weightRate) * cargoMultiplier;
-}
+        decimal cargoMultiplier = cargoType switch
+        {
+            "Heavy" => 1.5m,
+            "Fragile" => 1.2m,
+            _ => 1.0m
+        };
 
-    // ========================
-    // ASSIGN ORDER TO DRIVER
-    // ========================
+        return (distanceKm * basePricePerKm + weight * weightRate) * cargoMultiplier;
+    }
+
     public async Task<bool> AssignOrderToDriverAsync(int orderId, int driverId, int assignedByUserId)
     {
         var order = await _context.Orders.FindAsync(orderId);
@@ -375,9 +338,6 @@ public class OrderService : IOrderService
         return true;
     }
 
-    // ========================
-    // UPDATE ORDER STATUS
-    // ========================
     public async Task<bool> UpdateOrderStatusAsync(int orderId, string newStatus, int changedByUserId, string note)
     {
         var order = await _context.Orders.FindAsync(orderId);
@@ -387,7 +347,6 @@ public class OrderService : IOrderService
 
         var oldStatus = order.Status;
 
-        // Update status-specific fields
         if (newStatus == OrderStatus.InTransit)
         {
             order.ActualPickupTime = DateTime.UtcNow;

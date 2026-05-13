@@ -1,22 +1,49 @@
 @{
-    ViewData["Title"] = "Order Success";
+    ViewData["Title"] = "Đặt Hàng Thành Công";
+    Layout = "_DispatchLayout";
+    var orderId = ViewBag.OrderId;
 }
 
-<div class="container mt-5 text-center">
-    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
-        <div class="card-body py-5">
-            <div class="mb-4">
-                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 text-center">
+        <div class="mb-4">
+            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg" style="width: 100px; height: 100px; border: 2px solid var(--accent-green);">
+                <i class="fas fa-check text-success fs-1 animate-bounce"></i>
             </div>
-            <h2 class="text-success mb-3">Order Success!</h2>
-            <h4 class="mb-4">Your order ID is <span class="fw-bold">#@ViewBag.OrderId</span></h4>
-            <p class="lead text-muted mb-4">
-                Our driver will contact you shortly to pickup the order.
-            </p>
-            <div>
-                <a class="btn btn-primary btn-lg px-4" asp-action="Orders">View My Orders</a>
-                <a class="btn btn-outline-secondary btn-lg px-4 ms-2" asp-action="Index">Back to Dashboard</a>
+        </div>
+        
+        <h2 class="text-white fw-bold mb-3">Đặt Hàng Thành Công!</h2>
+        <p class="text-secondary mb-5">Đơn hàng của bạn đã được gửi tới hệ thống điều phối. <br/>Chúng tôi sẽ thông báo cho bạn ngay khi có tài xế nhận đơn.</p>
+        
+        <div class="dispatch-stat-card p-4 mb-5 border-top-0 bg-dark bg-opacity-50">
+            <div class="row text-start align-items-center">
+                <div class="col">
+                    <div class="text-secondary small fw-bold">MÃ ĐƠN HÀNG</div>
+                    <div class="text-white fs-5 fw-bold">#ORD-@orderId</div>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success">ĐANG CHỜ ĐIỀU PHỐI</span>
+                </div>
             </div>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="/Customer" class="btn btn-warning fw-bold px-4 py-2">
+                <i class="fas fa-home me-2"></i> Về Dashboard
+            </a>
+            <a href="/Orders/Details/@orderId" class="btn btn-outline-light px-4 py-2">
+                <i class="fas fa-search me-2"></i> Xem Chi Tiết
+            </a>
         </div>
     </div>
 </div>
+
+<style>
+    @@keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    .animate-bounce {
+        animation: bounce 2s infinite ease-in-out;
+    }
+</style>

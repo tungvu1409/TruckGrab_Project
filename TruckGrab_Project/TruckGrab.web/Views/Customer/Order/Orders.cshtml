@@ -1,49 +1,95 @@
 @model List<TruckGrab.web.Models.Order>
 @{
-    ViewData["Title"] = "Your Orders";
+    ViewData["Title"] = "Đơn Hàng Của Tôi";
+    Layout = "_DispatchLayout";
 }
 
-<div class="container mt-4">
-    <h2>Your Orders</h2>
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-boxes-stacked text-accent-orange"></i>
+        <span>Lịch Sử Đơn Hàng</span>
+    </div>
+    <div>
+        <a asp-action="CreateOrder" class="btn btn-warning fw-bold">
+            <i class="fas fa-plus me-1"></i> TẠO ĐƠN MỚI
+        </a>
+    </div>
+</div>
 
-    <table class="table table-bordered table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Order Code</th>
-                <th>Weight</th>
-                <th>Distance (km)</th>
-                <th>Status</th>
-                <th>Total Price</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Count > 0)
-            {
-                foreach (var order in Model)
+<div class="dispatch-stat-card border-top-0 p-0 overflow-hidden mt-3">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0 align-middle">
+            <thead class="bg-dark bg-opacity-50">
+                <tr>
+                    <th class="ps-4 py-3 text-secondary small fw-bold">MÃ ĐƠN</th>
+                    <th class="py-3 text-secondary small fw-bold">LỘ TRÌNH</th>
+                    <th class="py-3 text-secondary small fw-bold">LOẠI HÀNG</th>
+                    <th class="py-3 text-secondary small fw-bold">TRẠNG THÁI</th>
+                    <th class="py-3 text-secondary small fw-bold">TỔNG TIỀN</th>
+                    <th class="pe-4 py-3 text-end text-secondary small fw-bold">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var order in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="text-accent-cyan fw-bold">#@order.OrderCode</span>
+                                <div class="text-secondary" style="font-size: 0.7rem;">@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column" style="max-width: 250px;">
+                                    <span class="text-truncate small"><i class="fas fa-circle-dot text-warning me-2" style="font-size: 0.6rem;"></i>@order.PickupAddress</span>
+                                    <span class="text-truncate small mt-1"><i class="fas fa-location-arrow text-info me-2" style="font-size: 0.6rem;"></i>@order.DeliveryAddress</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-25 text-white fw-normal">@order.CargoType</span>
+                            </td>
+                            <td>
+                                @{
+                                    var statusClass = order.Status.ToLower() switch
+                                    {
+                                        "pending" => "bg-warning text-dark",
+                                        "assigned" => "bg-info text-dark",
+                                        "picking" => "bg-primary text-white",
+                                        "in_transit" => "bg-accent-cyan text-white",
+                                        "delivered" => "bg-success text-white",
+                                        "cancelled" => "bg-danger text-white",
+                                        _ => "bg-secondary text-white"
+                                    };
+                                }
+                                <span class="badge @statusClass rounded-pill px-3" style="font-size: 0.7rem;">@order.Status.ToUpper()</span>
+                            </td>
+                            <td>
+                                <span class="text-white fw-bold">@order.TotalPrice.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a href="/Orders/Details/@order.Id" class="btn btn-sm btn-outline-light border-secondary border-opacity-50">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                @if (order.Status == "pending")
+                                {
+                                    <a href="/Orders/Edit/@order.Id" class="btn btn-sm btn-outline-warning ms-1">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@order.OrderCode</td>
-                        <td>@order.Weight</td>
-                        <td>@order.DistanceKm</td>
-                        <td>@order.Status</td>
-                        <td>@order.TotalPrice</td>
-                        <td>
-                            <a class="btn btn-sm btn-primary" href="/Orders/Details/@order.Id">
-                                View
-                            </a>
+                        <td colspan="6" class="text-center py-5 text-secondary">
+                            <i class="fas fa-box-open d-block fs-1 mb-3 opacity-25"></i>
+                            Bạn chưa có đơn hàng nào. <a asp-action="CreateOrder" class="text-warning">Tạo ngay!</a>
                         </td>
                     </tr>
                 }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="6" class="text-center">
-                        No orders found
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>

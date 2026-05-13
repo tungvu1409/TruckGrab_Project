@@ -7,8 +7,6 @@ using System.Security.Claims;
 
 namespace TruckGrab.web.Controllers;
 
-
-[ApiController]
 [Route("[controller]")]
 public class CustomerController : Controller
 {
@@ -23,9 +21,6 @@ public class CustomerController : Controller
         _geolocationService = geolocationService;
     }
 
-    // ========================
-    // AUTH CHECK
-    // ========================
     private IActionResult? CheckCustomer()
     {
         if (!User.Identity?.IsAuthenticated ?? true)
@@ -43,9 +38,6 @@ public class CustomerController : Controller
         return int.TryParse(userIdClaim, out var id) ? id : 0;
     }
 
-    // ========================
-    // DASHBOARD
-    // ========================
     [HttpGet("")]
     [HttpGet("Index")]
     public IActionResult Index()
@@ -56,9 +48,6 @@ public class CustomerController : Controller
         return View();
     }
 
-    // ========================
-    // LIST
-    // ========================
     [HttpGet("Order/History")]
     public async Task<IActionResult> Orders()
     {
@@ -68,10 +57,6 @@ public class CustomerController : Controller
         var orders = await _orderService.GetOrdersAsync(GetUserId());
         return View("Order/Orders", orders);
     }
-
-    // ========================
-    // CREATE
-    // ========================
 
     [HttpGet("Order/New")]
     public IActionResult CreateOrder()
@@ -88,18 +73,17 @@ public class CustomerController : Controller
         var auth = CheckCustomer();
         if (auth != null) return auth;
 
+        ModelState.Clear();
+        if (model.Weight <= 0) ModelState.AddModelError("Weight", "Vui lòng nhập khối lượng hợp lệ");
+        if (string.IsNullOrEmpty(model.CargoType)) ModelState.AddModelError("CargoType", "Vui lòng chọn loại hàng");
+
         if (!ModelState.IsValid)
             return View("Order/CreateOrder", model);
             
-        // Store partial order in TempData for next step
         TempData["Order"] = System.Text.Json.JsonSerializer.Serialize(model);
 
         return RedirectToAction("SelectAddress");
     }
-
-    // ========================
-    // SELECT ADDRESS
-    // ========================
 
     [HttpGet("Order/New/Address")]
     public IActionResult SelectAddress()
@@ -123,6 +107,10 @@ public class CustomerController : Controller
         var auth = CheckCustomer();
         if (auth != null) return auth;
 
+        ModelState.Clear();
+        if (string.IsNullOrEmpty(model.PickupAddress)) ModelState.AddModelError("PickupAddress", "Vui lòng chọn điểm nhận");
+        if (string.IsNullOrEmpty(model.DeliveryAddress)) ModelState.AddModelError("DeliveryAddress", "Vui lòng chọn điểm giao");
+
         if (!ModelState.IsValid)
         {
             return View("Order/SelectAddress", model);
@@ -136,7 +124,6 @@ public class CustomerController : Controller
         if (partialOrder == null)
             return RedirectToAction("CreateOrder");
 
-        // Merge the addresses
         partialOrder.PickupAddress = model.PickupAddress;
         partialOrder.DeliveryAddress = model.DeliveryAddress;
 
@@ -144,10 +131,6 @@ public class CustomerController : Controller
 
         return RedirectToAction("ConfirmOrder");
     }
-
-    // ========================
-    // CONFIRM ORDER
-    // ========================
 
     [HttpGet("Order/New/Confirm")]
     public async Task<IActionResult> ConfirmOrder()
@@ -165,7 +148,6 @@ public class CustomerController : Controller
         if (model == null)
             return RedirectToAction("CreateOrder");
 
-        // Calculate Distance
         var pickupGeo = await _geolocationService.GeocodeAddressAsync(model.PickupAddress);
         var deliveryGeo = await _geolocationService.GeocodeAddressAsync(model.DeliveryAddress);
 
@@ -183,7 +165,6 @@ public class CustomerController : Controller
             }
             else
             {
-                // Fallback to haversine if API fails
                 model.DistanceKm = _geolocationService.CalculateHaversineDistance(pickupGeo.Coordinates, deliveryGeo.Coordinates);
             }
         }
@@ -194,7 +175,6 @@ public class CustomerController : Controller
 
         model.TotalPrice = _orderService.CalculatePrice(model.DistanceKm, model.CargoType, model.Weight);
         
-        // Save the updated model back to TempData so we have Distance and Price
         TempData["Order"] = System.Text.Json.JsonSerializer.Serialize(model);
 
         return View("Order/ConfirmOrder", model);
@@ -214,15 +194,11 @@ public class CustomerController : Controller
         if (partialOrder == null)
             return RedirectToAction("CreateOrder");
 
-        // Now create the order
         await _orderService.CreateOrderAsync(partialOrder, GetUserId());
 
         return RedirectToAction("OrderSuccess", new { id = partialOrder.Id });
     }
 
-    // ========================
-    // ORDER SUCCESS
-    // ========================
     [HttpGet("Order/Success/{id}")]
     public IActionResult OrderSuccess(int id)
     {
@@ -233,9 +209,6 @@ public class CustomerController : Controller
         return View("Order/OrderSuccess");
     }
 
-    // ========================
-    // DETAILS
-    // ========================
     [HttpGet("/Orders/Details/{id}")]
     public async Task<IActionResult> Details(int id)
     {
@@ -250,9 +223,6 @@ public class CustomerController : Controller
         return View("Order/Details", order);
     }
 
-    // ========================
-    // EDIT
-    // ========================
     [HttpGet("/Orders/Edit/{id}")]
     public async Task<IActionResult> EditOrder(int id)
     {
@@ -281,9 +251,6 @@ public class CustomerController : Controller
         return RedirectToAction("Details", new { id = model.Id });
     }
 
-    // ========================
-    // CANCEL
-    // ========================
     [HttpPost("/Orders/Cancel")]
     public async Task<IActionResult> CancelOrder(int id, string reason)
     {
