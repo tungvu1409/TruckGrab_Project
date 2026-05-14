@@ -74,12 +74,14 @@
                     <span>New Order</span>
                 </a>
             }
-            <a href="@Url.Action("Logout", "Account")" class="mobile-nav-item">
+            <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
         </div>
     }
+
+    <partial name="_LogoutModal" />
 
     <div class="container py-4">
         <main role="main" class="pb-3">

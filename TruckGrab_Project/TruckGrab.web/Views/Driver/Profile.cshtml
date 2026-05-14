@@ -1,164 +1,82 @@
 @model TruckGrab.web.Models.Driver
-
 @{
-    ViewData["Title"] = "Hồ sơ Tài xế";
+    ViewData["Title"] = "Hồ sơ tài xế";
     Layout = "_DispatchLayout";
-}
-
-@section Styles {
-    <style>
-        .profile-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .form-label { color: var(--text-secondary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
-        .form-control, .form-select { background-color: rgba(0, 0, 0, 0.2); border-color: rgba(255, 255, 255, 0.1); color: white; }
-        .form-control:focus { background-color: rgba(0, 0, 0, 0.3); border-color: var(--accent-cyan); box-shadow: 0 0 0 0.25rem rgba(0, 207, 232, 0.1); }
-    </style>
 }
 
 <div class="dispatch-top-bar">
     <div class="dispatch-page-title">
-        <i class="fas fa-user-gear text-accent-cyan"></i>
-        <span>Hồ sơ cá nhân của bạn</span>
-    </div>
-    <div class="d-flex gap-2">
-        <a href="@Url.Action("Index", "Driver")" class="btn btn-sm btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Dashboard
-        </a>
+        <i class="fas fa-id-card text-accent-cyan"></i>
+        <span>Hồ sơ tài xế chuyên nghiệp</span>
     </div>
 </div>
 
-<div class="row g-4 mt-1">
-    <div class="col-lg-8">
-        <div class="card profile-card border-0 rounded-4 shadow">
-            <div class="card-header bg-dark bg-opacity-25 py-3">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-id-card me-2"></i>Thông tin bằng lái & Trạng thái</h6>
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success bg-success bg-opacity-10 border-success text-success mb-4">
+                <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
             </div>
-            <div class="card-body">
-                @if (Model != null)
-                {
-                    <form id="profileForm">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">SỐ BẰNG LÁI</label>
-                                    <input type="text" class="form-control" id="licenseNumber" value="@Model.LicenseNumber" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">HẠNG BẰNG LÁI</label>
-                                    <input type="text" class="form-control" id="licenseClass" value="@Model.LicenseClass" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">SỐ NĂM KINH NGHIỆM</label>
-                                    <input type="number" class="form-control" id="experienceYears" value="@Model.ExperienceYears" min="0" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">TRẠNG THÁI HOẠT ĐỘNG</label>
-                                    <select class="form-select" id="status">
-                                        <option value="Active" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.Active)">Sẵn sàng làm việc (Online)</option>
-                                        <option value="Off" selected="@(Model.Status == TruckGrab.web.Models.DriverStatus.Off)">Nghỉ ngơi (Offline)</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">MÃ XE ĐANG NHẬN (NẾU CÓ)</label>
-                                    <input type="number" class="form-control" id="currentTruckId" value="@Model.CurrentTruckId">
-                                    <small class="text-secondary small mt-1 d-block">Để trống nếu chưa có xe được bàn giao.</small>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">ĐIỂM ĐÁNH GIÁ HIỆN TẠI</label>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="h3 mb-0 text-warning fw-bold">@Model.RatingAvg.ToString("0.0")</div>
-                                        <div class="text-warning"><i class="fas fa-star"></i></div>
-                                        <div class="text-secondary small">Dựa trên 24 lượt đánh giá</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <hr class="border-secondary opacity-25 my-4" />
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-warning fw-bold px-4 py-2">
-                                CẬP NHẬT HỒ SƠ <i class="fas fa-save ms-1"></i>
-                            </button>
-                        </div>
-                    </form>
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <i class="fas fa-circle-exclamation fs-1 text-warning mb-3"></i>
-                        <h5>Bạn chưa hoàn thiện hồ sơ tài xế</h5>
-                        <p class="text-secondary mb-4">Vui lòng tạo hồ sơ để có thể bắt đầu nhận đơn vận chuyển.</p>
-                        <a href="@Url.Action("CreateProfile", "Driver")" class="btn btn-warning fw-bold">TẠO HỒ SƠ NGAY</a>
+        }
+
+        <div class="dispatch-stat-card border-top-0 p-4">
+            <form asp-action="EditDriverProfile" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="mb-4 text-center">
+                    <div class="bg-accent-orange bg-opacity-10 text-accent-orange fw-bold rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem; border: 2px dashed var(--accent-orange);">
+                        <i class="fas fa-truck-driver"></i>
                     </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card profile-card border-0 rounded-4 shadow mb-4">
-            <div class="card-header bg-dark bg-opacity-25 py-3">
-                <h6 class="mb-0 fw-bold">Mức độ hoàn thiện</h6>
-            </div>
-            <div class="card-body">
-                <div class="progress bg-dark mb-4" style="height: 10px;">
-                    <div class="progress-bar bg-warning" role="progressbar" style="width: 75%"></div>
+                    <h4 class="text-white mb-0">Hồ sơ nghề nghiệp</h4>
+                    <p class="text-secondary small">Quản lý giấy phép và kinh nghiệm lái xe</p>
                 </div>
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-3 d-flex align-items-center gap-3">
-                        <i class="fas fa-circle-check text-success fs-5"></i>
-                        <span>Thông tin cơ bản</span>
-                    </li>
-                    <li class="mb-3 d-flex align-items-center gap-3">
-                        <i class="fas fa-circle-check text-success fs-5"></i>
-                        <span>Thông tin bằng lái</span>
-                    </li>
-                    <li class="mb-3 d-flex align-items-center gap-3">
-                        <i class="fas fa-circle-check text-success fs-5"></i>
-                        <span>Kinh nghiệm làm việc</span>
-                    </li>
-                    <li class="d-flex align-items-center gap-3 opacity-25">
-                        <i class="fas fa-circle-xmark fs-5"></i>
-                        <span>Ảnh chân dung & CCCD</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
 
-        <div class="card bg-secondary bg-opacity-10 border-0 rounded-4 p-4 text-center">
-            <div class="text-accent-cyan fs-1 mb-3"><i class="fas fa-shield-halved"></i></div>
-            <h6 class="fw-bold">Tài khoản đã xác thực</h6>
-            <p class="text-secondary small mb-0">Hồ sơ của bạn đã được quản trị viên phê duyệt cho các chuyến hàng giá trị cao.</p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">SỐ GIẤY PHÉP LÁI XE</label>
+                        <input name="licenseNumber" value="@Model.LicenseNumber" class="form-control bg-dark border-secondary text-white" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">HẠNG BẰNG LÁI</label>
+                        <select name="licenseClass" class="form-select bg-dark border-secondary text-white">
+                            <option value="B2" selected="@(Model.LicenseClass == "B2")">B2 - Xe tải < 3.5 tấn</option>
+                            <option value="C" selected="@(Model.LicenseClass == "C")">C - Xe tải >= 3.5 tấn</option>
+                            <option value="D" selected="@(Model.LicenseClass == "D")">D - Xe khách</option>
+                            <option value="E" selected="@(Model.LicenseClass == "E")">E - Xe khách > 30 chỗ</option>
+                            <option value="FC" selected="@(Model.LicenseClass == "FC")">FC - Xe đầu kéo</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">KINH NGHIỆM (NĂM)</label>
+                        <input name="experienceYears" type="number" value="@Model.ExperienceYears" class="form-control bg-dark border-secondary text-white" />
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <div class="p-3 bg-dark bg-opacity-25 rounded-3 border border-secondary border-opacity-10">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small fw-bold">ĐIỂM ĐÁNH GIÁ TRUNG BÌNH</span>
+                                <span class="text-warning fw-bold">@Model.RatingAvg.ToString("0.0") <i class="fas fa-star ms-1"></i></span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary small fw-bold">TRẠNG THÁI HIỆN TẠI</span>
+                                <span class="badge bg-@(Model.Status == TruckGrab.web.Models.DriverStatus.Active ? "success" : "secondary")">@Model.Status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm">
+                        CẬP NHẬT HỒ SƠ NGHỀ NGHIỆP <i class="fas fa-check-circle ms-2"></i>
+                    </button>
+                    <div class="text-center mt-3">
+                        <a href="@Url.Action("Profile", "Account")" class="text-accent-cyan small"><i class="fas fa-user-gear me-1"></i> Chỉnh sửa thông tin tài khoản</a>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-            $('#profileForm').on('submit', function(e) {
-                e.preventDefault();
-                const formData = {
-                    licenseNumber: $('#licenseNumber').val(),
-                    licenseClass: $('#licenseClass').val(),
-                    experienceYears: parseInt($('#experienceYears').val()),
-                    status: $('#status').val(),
-                    currentTruckId: $('#currentTruckId').val() ? parseInt($('#currentTruckId').val()) : null
-                };
-
-                fetch('/Driver/UpdateProfile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Cập nhật hồ sơ thành công!');
-                        location.reload();
-                    } else alert('Lỗi: ' + data.message);
-                });
-            });
-        });
-    </script>
-}

@@ -1,0 +1,51 @@
+<!-- Custom Logout Confirmation Modal -->
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background-color: #1a1f2b; color: white;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-sign-out-alt fs-2"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-2">Đăng xuất?</h5>
+                <p class="text-secondary small mb-4">Bạn có chắc chắn muốn kết thúc phiên làm việc hiện tại không?</p>
+                
+                <div class="d-grid gap-2">
+                    <a href="/Account/Logout" class="btn btn-danger fw-bold py-2" style="border-radius: 12px;">
+                        ĐĂNG XUẤT
+                    </a>
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold" data-bs-dismiss="modal">
+                        BỎ QUA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Helper to ensure modal works even if data attributes fail
+    function showLogoutModal(e) {
+        if (e) e.preventDefault();
+        var myModal = new bootstrap.Modal(document.getElementById('logoutConfirmModal'));
+        myModal.show();
+        return false;
+    }
+</script>
+
+<style>
+    #logoutConfirmModal .modal-content {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    #logoutConfirmModal .btn-danger {
+        background-color: #ea5455;
+        border: none;
+        transition: all 0.2s;
+    }
+    #logoutConfirmModal .btn-danger:hover {
+        background-color: #ff5e5e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3);
+    }
+</style>

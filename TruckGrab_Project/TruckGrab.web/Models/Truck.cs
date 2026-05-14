@@ -3,7 +3,7 @@ namespace TruckGrab.web.Models;
 public enum TruckStatus
 {
     Available,
-    OnDelivery,
+    OnTrip,
     Maintenance
 }
 

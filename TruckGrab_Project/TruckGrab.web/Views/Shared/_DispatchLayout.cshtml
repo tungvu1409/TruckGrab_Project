@@ -39,7 +39,6 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    <li><a href="#"><i class="fas fa-columns"></i><span>Bảng Kanban</span></a></li>
                 </ul>
 
                 <div class="sidebar-section-title">QUẢN LÝ</div>
@@ -50,16 +49,22 @@
                             <span>Đơn hàng</span>
                         </a>
                     </li>
-                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Trucks" ? "active" : "")">
-                        <a href="@Url.Action("Trucks", "Admin")">
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageTrucks" ? "active" : "")">
+                        <a href="@Url.Action("ManageTrucks", "Admin")">
                             <i class="fas fa-truck"></i>
-                            <span>Xe tải</span>
+                            <span>Quản lý xe tải</span>
                         </a>
                     </li>
                     <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageDrivers" ? "active" : "")">
                         <a href="@Url.Action("ManageDrivers", "Admin")">
                             <i class="fas fa-user-tie"></i>
                             <span>Tài xế</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                        <a href="@Url.Action("Profile", "Admin")">
+                            <i class="fas fa-user-gear"></i>
+                            <span>Cài đặt tài khoản</span>
                         </a>
                     </li>
                 </ul>
@@ -74,10 +79,16 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                    <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                        <a href="@Url.Action("Profile", "Account")">
+                            <i class="fas fa-user-gear"></i>
+                            <span>Hồ sơ tài khoản</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Driver" && ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
                         <a href="@Url.Action("Profile", "Driver")">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Hồ sơ</span>
+                            <i class="fas fa-id-card"></i>
+                            <span>Hồ sơ tài xế</span>
                         </a>
                     </li>
                 </ul>
@@ -118,6 +129,12 @@
                             <span>Đơn hàng của tôi</span>
                         </a>
                     </li>
+                    <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                        <a href="@Url.Action("Profile", "Customer")">
+                            <i class="fas fa-user-gear"></i>
+                            <span>Hồ sơ cá nhân</span>
+                        </a>
+                    </li>
                 </ul>
             }
 
@@ -130,17 +147,76 @@
                         <div class="text-white small fw-bold text-truncate" style="max-width: 120px;">@userName</div>
                         <div class="text-secondary" style="font-size: 0.7rem;">@(role?.ToUpper()) • <span id="currentTime">--:--</span></div>
                     </div>
-                    <a asp-controller="Account" asp-action="Logout" class="ms-auto text-secondary hover-white">
+                    <a href="#" class="ms-auto text-secondary hover-white" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
                         <i class="fas fa-sign-out-alt"></i>
                     </a>
                 </div>
             </div>
         </aside>
+        
+        <!-- Mobile Bottom Nav -->
+        <div class="mobile-nav-dispatch">
+            @if (role == "Admin")
+            {
+                <a href="@Url.Action("Index", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dash</span>
+                </a>
+                <a href="@Url.Action("ManageOrders", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageOrders" ? "active" : "")">
+                    <i class="fas fa-box"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="@Url.Action("ManageDrivers", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ManageDrivers" ? "active" : "")">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Drivers</span>
+                </a>
+                <a href="@Url.Action("Profile", "Admin")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                    <i class="fas fa-user-gear"></i>
+                    <span>Profile</span>
+                </a>
+            }
+            else if (role == "Driver")
+            {
+                <a href="@Url.Action("Index", "Driver")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dash</span>
+                </a>
+                <a href="@Url.Action("MyOrders", "Driver")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyOrders" ? "active" : "")">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="@Url.Action("Profile", "Driver")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
+                    <i class="fas fa-id-card"></i>
+                    <span>Profile</span>
+                </a>
+            }
+            else if (role == "Customer")
+            {
+                <a href="@Url.Action("Index", "Customer")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="@Url.Action("CreateOrder", "Customer")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "CreateOrder" ? "active" : "")">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New</span>
+                </a>
+                <a href="@Url.Action("Orders", "Customer")" class="mobile-nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Orders" ? "active" : "")">
+                    <i class="fas fa-box-open"></i>
+                    <span>Orders</span>
+                </a>
+            }
+            <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Out</span>
+            </a>
+        </div>
 
         <main class="dispatch-main">
             @RenderBody()
         </main>
     </div>
+
+    <partial name="_LogoutModal" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

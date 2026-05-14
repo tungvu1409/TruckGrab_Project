@@ -102,7 +102,7 @@
         @if (Model.Status.ToLower() == "pending")
         {
             <div class="d-grid gap-2">
-                <a class="btn btn-warning fw-bold py-3 shadow-lg" href="/Orders/Edit/@Model.Id">
+                <a class="btn btn-warning fw-bold py-3 shadow-lg" href="/Order/Edit/@Model.Id">
                     <i class="fas fa-edit me-2"></i> CHỈNH SỬA ĐƠN HÀNG
                 </a>
                 <button class="btn btn-outline-danger py-2 border-0 opacity-75 hover-opacity-100" data-bs-toggle="modal" data-bs-target="#cancelModal">
@@ -116,7 +116,7 @@
 <div class="modal fade" id="cancelModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark border-secondary">
-            <form action="/Orders/Cancel" method="post">
+            <form action="/Order/Cancel" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
                 <div class="modal-header border-secondary">
                     <h5 class="modal-title text-white">Xác nhận hủy đơn</h5>

@@ -1,0 +1,82 @@
+@model IEnumerable<TruckGrab.web.Models.Truck>
+@{
+    ViewData["Title"] = "Quản lý xe tải";
+    Layout = "_DispatchLayout";
+}
+
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-truck text-accent-cyan"></i>
+        <span>Quản lý Đội xe</span>
+    </div>
+    <div>
+        <a href="@Url.Action("CreateTruck", "Admin")" class="btn btn-sm btn-warning fw-bold">
+            <i class="fas fa-plus me-1"></i> THÊM XE MỚI
+        </a>
+    </div>
+</div>
+
+<div class="card bg-secondary bg-opacity-10 border-0 shadow-sm mt-3 overflow-hidden">
+    <div class="card-header border-bottom border-secondary bg-transparent py-3">
+        <h5 class="mb-0 fw-bold">Danh sách xe tải trong hệ thống</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-dark mb-0 align-middle">
+                    <thead class="bg-dark bg-opacity-50">
+                        <tr>
+                            <th class="ps-3 py-3 border-secondary">Biển số</th>
+                            <th class="border-secondary">Thương hiệu / Model</th>
+                            <th class="border-secondary">Loại nhiên liệu</th>
+                            <th class="border-secondary">Trạng thái</th>
+                            <th class="text-center pe-3 border-secondary">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var truck in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-accent-cyan">@truck.LicensePlate</td>
+                                <td>@truck.Brand @truck.Model</td>
+                                <td class="small">@truck.FuelType</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-@(truck.Status switch
+                                    {
+                                        TruckGrab.web.Models.TruckStatus.Available => "success",
+                                        TruckGrab.web.Models.TruckStatus.OnTrip => "primary",
+                                        TruckGrab.web.Models.TruckStatus.Maintenance => "warning text-dark",
+                                        _ => "secondary"
+                                    })">
+                                        @(truck.Status == TruckGrab.web.Models.TruckStatus.OnTrip ? "ON TRIP" : truck.Status.ToString().ToUpper())
+                                    </span>
+                                </td>
+                                <td class="text-center pe-3">
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("EditTruck", "Admin", new { id = truck.Id })" class="btn btn-xs btn-outline-info">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="DeleteTruck" asp-route-id="@truck.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa xe này?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-xs btn-outline-danger ms-1">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-truck-ramp-box fs-1 mb-3 opacity-25"></i>
+                <p class="text-secondary">Chưa có xe tải nào trong hệ thống.</p>
+            </div>
+        }
+    </div>
+</div>

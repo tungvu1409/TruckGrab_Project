@@ -1,0 +1,74 @@
+@model TruckGrab.web.Models.Truck
+@{
+    ViewData["Title"] = "Chỉnh sửa xe tải";
+    Layout = "_DispatchLayout";
+}
+
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-edit text-accent-cyan"></i>
+        <span>Chỉnh sửa xe tải: @Model.LicensePlate</span>
+    </div>
+    <a href="@Url.Action("ManageTrucks", "Admin")" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="dispatch-stat-card border-top-0 p-4">
+            <form asp-action="EditTruck" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">BIỂN SỐ XE</label>
+                        <input asp-for="LicensePlate" class="form-control bg-dark border-secondary text-white" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">LOẠI XE</label>
+                        <select asp-for="TruckTypeId" class="form-select bg-dark border-secondary text-white" required>
+                            @foreach (var type in (ViewBag.TruckTypes as IEnumerable<TruckGrab.web.Models.TruckType>) ?? Enumerable.Empty<TruckGrab.web.Models.TruckType>())
+                            {
+                                <option value="@type.Id" selected="@(type.Id == Model.TruckTypeId)">@type.TypeName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">THƯƠNG HIỆU</label>
+                        <input asp-for="Brand" class="form-control bg-dark border-secondary text-white" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">MODEL</label>
+                        <input asp-for="Model" class="form-control bg-dark border-secondary text-white" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">LOẠI NHIÊN LIỆU</label>
+                        <select asp-for="FuelType" class="form-select bg-dark border-secondary text-white">
+                            <option value="Diesel">Diesel</option>
+                            <option value="Gasoline">Xăng</option>
+                            <option value="Electric">Điện</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">TRẠNG THÁI</label>
+                        <select asp-for="Status" class="form-select bg-dark border-secondary text-white" asp-items="Html.GetEnumSelectList<TruckGrab.web.Models.TruckStatus>()">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm">
+                        LƯU THAY ĐỔI <i class="fas fa-save ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -198,12 +198,66 @@ public class AdminController : Controller
             .Include(u => u.Profile)
             .ToDictionary(u => u.Id);
 
+        var trucks  = _context.Trucks.ToDictionary(t => t.Id);
+
         ViewBag.Users         = users;
+        ViewBag.Trucks        = trucks;
         ViewBag.SortBy        = sortBy;
         ViewBag.SortOrder     = sortOrder;
         ViewBag.NextSortOrder = sortOrder == "asc" ? "desc" : "asc";
 
         return View(drivers);
+    }
+
+    [HttpGet("Manage/Drivers/AssignTruck/{id}")]
+    public async Task<IActionResult> AssignTruck(int id)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var driver = await _context.Drivers.FindAsync(id);
+        if (driver == null) return NotFound();
+
+        var trucks = await _context.Trucks.Where(t => !t.IsDeleted && (t.Status == TruckStatus.Available || t.Id == driver.CurrentTruckId)).ToListAsync();
+        
+        var user = await _context.Users.Include(u => u.Profile).FirstOrDefaultAsync(u => u.Id == driver.UserId);
+
+        ViewBag.DriverName = user?.Profile?.FullName ?? user?.UserName ?? "Driver #" + driver.Id;
+        ViewBag.Trucks = trucks;
+
+        return View(driver);
+    }
+
+    [HttpPost("Manage/Drivers/AssignTruck/{id}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AssignTruck(int id, int truckId)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var driver = await _context.Drivers.FindAsync(id);
+        if (driver == null) return NotFound();
+
+        if (driver.CurrentTruckId.HasValue && driver.CurrentTruckId != truckId)
+        {
+            var oldTruck = await _context.Trucks.FindAsync(driver.CurrentTruckId.Value);
+            if (oldTruck != null) oldTruck.Status = TruckStatus.Available;
+        }
+
+        if (truckId > 0)
+        {
+            driver.CurrentTruckId = truckId;
+            var newTruck = await _context.Trucks.FindAsync(truckId);
+            if (newTruck != null) newTruck.Status = TruckStatus.OnTrip;
+        }
+        else
+        {
+            driver.CurrentTruckId = null;
+        }
+
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Cập nhật gán xe thành công!";
+        return RedirectToAction("ManageDrivers");
     }
 
     [HttpGet("Manage/Orders")]
@@ -231,86 +285,6 @@ public class AdminController : Controller
         return View(orderedQuery.ToList());
     }
 
-    [HttpGet("Manage/Trucks")]
-    public IActionResult Trucks()
-    {
-        var auth = CheckAdmin();
-        if (auth != null) return auth;
-
-        var trucks = _context.Trucks
-            .Where(t => !t.IsDeleted)
-            .ToList();
-
-        return View(trucks);
-    }
-
-    [HttpGet("Manage/Trucks/Create")]
-    public IActionResult CreateTruck()
-    {
-        var auth = CheckAdmin();
-        if (auth != null) return auth;
-
-        return View();
-    }
-
-    [HttpPost("Manage/Trucks/Create")]
-    [ValidateAntiForgeryToken]
-    public IActionResult CreateTruck(Truck truck)
-    {
-        var auth = CheckAdmin();
-        if (auth != null) return auth;
-
-        if (!ModelState.IsValid)
-            return View(truck);
-
-        _context.Trucks.Add(truck);
-        _context.SaveChanges();
-
-        return RedirectToAction("Trucks");
-    }
-
-    [HttpGet("Manage/Trucks/Edit/{id}")]
-    public IActionResult EditTruck(int id)
-    {
-        var auth = CheckAdmin();
-        if (auth != null) return auth;
-
-        var truck = _context.Trucks.Find(id);
-        if (truck == null) return NotFound();
-
-        return View(truck);
-    }
-
-    [HttpPost("Manage/Trucks/Edit/{id}")]
-    [ValidateAntiForgeryToken]
-    public IActionResult EditTruck(Truck truck)
-    {
-        var auth = CheckAdmin();
-        if (auth != null) return auth;
-
-        if (!ModelState.IsValid)
-            return View(truck);
-
-        _context.Trucks.Update(truck);
-        _context.SaveChanges();
-
-        return RedirectToAction("Trucks");
-    }
-
-    [HttpGet("Manage/Trucks/Delete/{id}")]
-    public IActionResult DeleteTruck(int id)
-    {
-        var auth = CheckAdmin();
-        if (auth != null) return auth;
-
-        var truck = _context.Trucks.Find(id);
-        if (truck == null) return NotFound();
-
-        truck.IsDeleted = true;
-        _context.SaveChanges();
-
-        return RedirectToAction("Trucks");
-    }
 
     [HttpGet("LiveMap")]
     public IActionResult LiveMap()
@@ -410,6 +384,112 @@ public class AdminController : Controller
         }
 
         return RedirectToAction("ManageOrders");
+    }
+
+    // ===== TRUCK MANAGEMENT =====
+
+    [HttpGet("ManageTrucks")]
+    public async Task<IActionResult> ManageTrucks()
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var trucks = await _context.Trucks.Where(t => !t.IsDeleted).ToListAsync();
+        return View(trucks);
+    }
+
+    [HttpGet("CreateTruck")]
+    public async Task<IActionResult> CreateTruck()
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        ViewBag.TruckTypes = await _context.TruckTypes.ToListAsync();
+        return View(new Truck());
+    }
+
+    [HttpPost("CreateTruck")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateTruck(Truck truck)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        if (ModelState.IsValid)
+        {
+            _context.Trucks.Add(truck);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Thêm xe tải thành công!";
+            return RedirectToAction("ManageTrucks");
+        }
+        ViewBag.TruckTypes = await _context.TruckTypes.ToListAsync();
+        return View(truck);
+    }
+
+    [HttpGet("EditTruck/{id}")]
+    public async Task<IActionResult> EditTruck(int id)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var truck = await _context.Trucks.FindAsync(id);
+        if (truck == null) return NotFound();
+
+        ViewBag.TruckTypes = await _context.TruckTypes.ToListAsync();
+        return View(truck);
+    }
+
+    [HttpPost("EditTruck/{id}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditTruck(int id, Truck truck)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var existingTruck = await _context.Trucks.FindAsync(id);
+        if (existingTruck == null) return NotFound();
+
+        if (ModelState.IsValid)
+        {
+            existingTruck.LicensePlate = truck.LicensePlate;
+            existingTruck.TruckTypeId = truck.TruckTypeId;
+            existingTruck.Brand = truck.Brand;
+            existingTruck.Model = truck.Model;
+            existingTruck.FuelType = truck.FuelType;
+            existingTruck.Status = truck.Status;
+            
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cập nhật xe tải thành công!";
+            return RedirectToAction("ManageTrucks");
+        }
+        ViewBag.TruckTypes = await _context.TruckTypes.ToListAsync();
+        return View(truck);
+    }
+
+    [HttpPost("DeleteTruck/{id}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteTruck(int id)
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        var truck = await _context.Trucks.FindAsync(id);
+        if (truck != null)
+        {
+            truck.IsDeleted = true;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Xóa xe tải thành công!";
+        }
+        return RedirectToAction("ManageTrucks");
+    }
+
+    [HttpGet("Profile")]
+    public IActionResult Profile()
+    {
+        var auth = CheckAdmin();
+        if (auth != null) return auth;
+
+        return RedirectToAction("Profile", "Account");
     }
 }
 

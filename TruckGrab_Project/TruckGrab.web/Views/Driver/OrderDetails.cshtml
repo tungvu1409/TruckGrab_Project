@@ -110,12 +110,14 @@
                 <div class="mb-4 text-center">
                     <span class="badge rounded-pill bg-@(Model.Status.ToLower() switch {
                         "pending" => "warning text-dark",
-                        "ontheway" => "primary",
-                        "completed" => "success",
+                        "assigned" => "info text-dark",
+                        "picking" => "primary",
+                        "in_transit" => "primary",
+                        "delivered" => "success",
                         "cancelled" => "danger",
-                        _ => "info"
+                        _ => "secondary"
                     }) px-4 py-2 fs-6">
-                        @Model.Status.ToUpper()
+                        @Model.Status.ToUpper().Replace("_", " ")
                     </span>
                 </div>
 
@@ -135,13 +137,23 @@
         </div>
 
         <div class="d-grid gap-2">
-            @if (Model.Status == "Confirmed" || Model.Status == "Assigned")
+            @if (Model.Status == TruckGrab.web.Models.Order.Statuses.Assigned || Model.Status == TruckGrab.web.Models.Order.Statuses.Picking)
             {
-                <button class="btn btn-success fw-bold py-3">BẮT ĐẦU CHUYẾN HÀNG <i class="fas fa-truck-moving ms-2"></i></button>
+                <form asp-action="ConfirmPickup" asp-route-orderId="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-3 text-dark">
+                        XÁC NHẬN BỐC HÀNG <i class="fas fa-truck-loading ms-2"></i>
+                    </button>
+                </form>
             }
-            else if (Model.Status == "OnTheWay")
+            else if (Model.Status == TruckGrab.web.Models.Order.Statuses.InTransit)
             {
-                <button class="btn btn-primary fw-bold py-3">XÁC NHẬN ĐÃ GIAO <i class="fas fa-check-double ms-2"></i></button>
+                <form asp-action="ConfirmDelivery" asp-route-orderId="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-3">
+                        XÁC NHẬN GIAO HÀNG <i class="fas fa-check-double ms-2"></i>
+                    </button>
+                </form>
             }
         </div>
     </div>

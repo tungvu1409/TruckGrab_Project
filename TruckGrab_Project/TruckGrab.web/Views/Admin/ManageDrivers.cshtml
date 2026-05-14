@@ -44,31 +44,47 @@
                                 </a>
                             </th>
                             <th class="border-secondary">Số điện thoại</th>
+                            <th class="border-secondary">Xe đang lái</th>
                             <th class="border-secondary">Trạng thái</th>
-                            <th class="pe-3 border-secondary">Ngày đăng ký</th>
+                            <th class="pe-3 border-secondary text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var driver in Model)
                         {
                             var user = users?.GetValueOrDefault(driver.UserId);
+                            var truck = driver.CurrentTruckId.HasValue ? (ViewBag.Trucks as Dictionary<int, TruckGrab.web.Models.Truck>)?.GetValueOrDefault(driver.CurrentTruckId.Value) : null;
                             <tr>
                                 <td class="ps-3 text-accent-green fw-bold">#@driver.Id</td>
                                 <td class="fw-bold">@(user?.Profile?.FullName ?? user?.UserName ?? "N/A")</td>
                                 <td class="small">@driver.LicenseNumber</td>
                                 <td class="small">@(user?.Profile?.Phone ?? "N/A")</td>
+                                <td class="small">
+                                    @if (truck != null)
+                                    {
+                                        <span class="text-accent-cyan"><i class="fas fa-truck me-1"></i>@truck.LicensePlate</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary italic">Chưa gán xe</span>
+                                    }
+                                </td>
                                 <td>
                                     <span class="badge rounded-pill bg-@(driver.Status.ToString().ToLower() switch
                                     {
-                                        "available" => "success",
+                                        "active" => "success",
                                         "busy" => "warning text-dark",
-                                        "offduty" => "secondary",
+                                        "off" => "secondary",
                                         _ => "light text-dark"
                                     })">
                                         @driver.Status.ToString().ToUpper()
                                     </span>
                                 </td>
-                                <td class="small text-secondary pe-3">@(user?.CreatedAt.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                <td class="text-center pe-3">
+                                    <a href="@Url.Action("AssignTruck", "Admin", new { id = driver.Id })" class="btn btn-xs btn-outline-warning fw-bold py-1 px-3">
+                                        <i class="fas fa-link me-1"></i> GÁN XE
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>

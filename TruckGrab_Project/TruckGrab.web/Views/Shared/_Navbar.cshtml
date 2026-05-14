@@ -5,14 +5,14 @@
     var controller = ViewContext.RouteData.Values["Controller"]?.ToString();
     var action = ViewContext.RouteData.Values["Action"]?.ToString();
     var isHome = controller == "Home" && action == "Index";
-    var useYellowNavbar = isHome && string.IsNullOrEmpty(role);
+    var useYellowNavbar = isHome;
 }
 
 <nav class="navbar navbar-expand-sm @(useYellowNavbar ? "navbar-light bg-warning" : (role == "Admin" ? "navbar-dark bg-dark" : "navbar-light bg-white")) border-bottom mb-3 shadow-sm" 
-     style="@(useYellowNavbar ? "padding: 1rem 0; border-bottom: 2px solid #e0a800 !important;" : "")">
+     style="@(useYellowNavbar ? "padding: 1rem 0; border-bottom: 2px solid #e0a800 !important; background-color: #ffc107 !important;" : "")">
     <div class="container-fluid">
 
-        <a class="navbar-brand @(role == "Admin" ? "text-white" : "fw-bold")"
+        <a class="navbar-brand @(useYellowNavbar ? "text-dark fw-bold" : (role == "Admin" ? "text-white" : "fw-bold"))"
            asp-controller="Home"
            asp-action="Index">
             @if (useYellowNavbar)
@@ -38,7 +38,7 @@
                 @if (role == "Admin")
                 {
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white"
+                        <a class="nav-link dropdown-toggle @(useYellowNavbar ? "text-dark" : "text-white")"
                            href="#"
                            id="manageDropdown"
                            role="button"
@@ -53,8 +53,8 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item"><a class="nav-link text-white" asp-controller="Admin" asp-action="Users">Users</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" asp-controller="Admin" asp-action="Orders">System Orders</a></li>
+                    <li class="nav-item"><a class="nav-link @(useYellowNavbar ? "text-dark" : "text-white")" asp-controller="Admin" asp-action="Users">Users</a></li>
+                    <li class="nav-item"><a class="nav-link @(useYellowNavbar ? "text-dark" : "text-white")" asp-controller="Admin" asp-action="Orders">System Orders</a></li>
                 }
                 else if (role == "Driver")
                 {
@@ -79,32 +79,32 @@
                 @if (!string.IsNullOrEmpty(userName))
                 {
                     <li class="nav-item">
-                        <span class="nav-link @(role == "Admin" ? "text-white" : "fw-bold")">
+                        <span class="nav-link @(useYellowNavbar ? "text-dark" : (role == "Admin" ? "text-white" : "fw-bold"))">
                             <i class="fas fa-user-circle me-1"></i> @userName
                         </span>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link @(role == "Admin" ? "text-warning" : "text-danger fw-bold")"
-                           asp-controller="Account"
-                           asp-action="Logout">
+                           href="#"
+                           data-bs-toggle="modal"
+                           data-bs-target="#logoutConfirmModal">
                             Logout <i class="fas fa-sign-out-alt ms-1"></i>
                         </a>
                     </li>
                 }
                 else
                 {
-                    <li class="nav-item">
-                        <a class="btn @(useYellowNavbar ? "btn-dark" : "btn-primary") fw-bold px-4"
+                    <li class="nav-item d-flex align-items-center gap-2">
+                        <a class="btn @(useYellowNavbar ? "btn-outline-dark" : "btn-outline-primary") fw-bold px-4"
+                           style="font-size: 0.85rem; letter-spacing: 0.5px;"
                            asp-controller="Account" asp-action="Login">
                             LOGIN
                         </a>
-                    </li>
-
-                    <li class="nav-item ms-2">
-                        <a class="nav-link fw-bold"
+                        <a class="btn @(useYellowNavbar ? "btn-dark" : "btn-primary") fw-bold px-4 shadow-sm"
+                           style="font-size: 0.85rem; letter-spacing: 0.5px;"
                            asp-controller="Account" asp-action="Register">
-                            Register
+                            REGISTER
                         </a>
                     </li>
                 }

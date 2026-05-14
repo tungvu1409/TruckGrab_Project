@@ -137,7 +137,7 @@
             const firstLng = @(recommendedDrivers.FirstOrDefault()?.Lng ?? 106.7009);
             
             const map = L.map('dispatchLiveMap').setView([firstLat, firstLng], 14);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OSM',
                 subdomains: 'abcd',
                 maxZoom: 20

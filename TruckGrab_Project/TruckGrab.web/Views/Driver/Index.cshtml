@@ -17,7 +17,7 @@
         <button id="statusBtn" class="btn btn-sm btn-success fw-bold px-3">
             <i class="fas fa-circle me-1 small"></i> <span id="statusText">Online</span>
         </button>
-        <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-danger">
+        <a href="#" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
             <i class="fas fa-sign-out-alt"></i>
         </a>
     </div>
@@ -82,9 +82,9 @@
         });
 
         function initMap() {
-            map = L.map('dispatchLiveMap').setView([10.7769, 106.7009], 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM' }).addTo(map);
-            marker = L.marker([10.7769, 106.7009], { draggable: true }).addTo(map);
+            map = L.map('dispatchLiveMap').setView([21.0285, 105.8542], 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM' }).addTo(map);
+            marker = L.marker([21.0285, 105.8542], { draggable: true }).addTo(map);
             marker.on('dragend', function(e) {
                 const pos = marker.getLatLng();
                 updateGpsPosition(pos.lat, pos.lng);

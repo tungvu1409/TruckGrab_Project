@@ -17,6 +17,14 @@ html {
     scroll-behavior: smooth;
 }
 
+@media (max-width: 767px) {
+    html {
+        /* Autofit logic: Scales linearly with screen width */
+        /* 3.2vw = approx 12px at 375px width */
+        font-size: clamp(11px, 3.2vw, 15px); 
+    }
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
@@ -174,7 +182,7 @@ body {
 
 /* Navigation Overrides */
 .navbar {
-    background: var(--glass-bg) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--glass-border);
 }

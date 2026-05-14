@@ -4,6 +4,7 @@ using TruckGrab.web.Models;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace TruckGrab.web.Controllers;
 
@@ -13,12 +14,14 @@ public class CustomerController : Controller
     private readonly IOrderService _orderService;
     private readonly IConfiguration _configuration;
     private readonly IGeolocationService _geolocationService;
+    private readonly TruckGrab.web.Data.ApplicationDbContext _context;
 
-    public CustomerController(IOrderService orderService, IConfiguration configuration, IGeolocationService geolocationService)
+    public CustomerController(IOrderService orderService, IConfiguration configuration, IGeolocationService geolocationService, TruckGrab.web.Data.ApplicationDbContext context)
     {
         _orderService = orderService;
         _configuration = configuration;
         _geolocationService = geolocationService;
+        _context = context;
     }
 
     private IActionResult? CheckCustomer()
@@ -37,6 +40,42 @@ public class CustomerController : Controller
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(userIdClaim, out var id) ? id : 0;
     }
+    [HttpGet("GetOrdersJson")]
+    public async Task<IActionResult> GetOrdersJson()
+    {
+        var auth = CheckCustomer();
+        if (auth != null) return Unauthorized();
+
+        var orders = await _orderService.GetOrdersAsync(GetUserId());
+        var activeCount = orders.Count(o => o.Status != "delivered" && o.Status != "cancelled");
+        var doneCount = orders.Count(o => o.Status == "delivered");
+
+        return Json(new { activeCount, doneCount });
+    }
+
+    [HttpGet("GetActiveOrdersJson")]
+    public async Task<IActionResult> GetActiveOrdersJson()
+    {
+        var auth = CheckCustomer();
+        if (auth != null) return Unauthorized();
+
+        var orders = await _orderService.GetOrdersAsync(GetUserId());
+        var activeOrders = orders
+            .Where(o => o.Status != "delivered" && o.Status != "cancelled")
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new {
+                o.Id,
+                o.OrderCode,
+                o.Status,
+                o.PickupAddress,
+                o.DeliveryAddress,
+                o.TotalPrice,
+                CreatedAt = o.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            });
+
+        return Json(activeOrders);
+    }
+
 
     [HttpGet("")]
     [HttpGet("Index")]
@@ -200,16 +239,20 @@ public class CustomerController : Controller
     }
 
     [HttpGet("Order/Success/{id}")]
-    public IActionResult OrderSuccess(int id)
+    public async Task<IActionResult> OrderSuccess(int id)
     {
         var auth = CheckCustomer();
         if (auth != null) return auth;
 
-        ViewBag.OrderId = id;
+        var (order, _) = await _orderService.GetOrderDetailAsync(id, GetUserId());
+        if (order == null) return NotFound();
+
+        ViewBag.OrderId = order.Id;
+        ViewBag.OrderCode = order.OrderCode;
         return View("Order/OrderSuccess");
     }
 
-    [HttpGet("/Orders/Details/{id}")]
+    [HttpGet("/Order/Details/{id}")]
     public async Task<IActionResult> Details(int id)
     {
         var auth = CheckCustomer();
@@ -223,7 +266,7 @@ public class CustomerController : Controller
         return View("Order/Details", order);
     }
 
-    [HttpGet("/Orders/Edit/{id}")]
+    [HttpGet("/Order/Edit/{id}")]
     public async Task<IActionResult> EditOrder(int id)
     {
         var auth = CheckCustomer();
@@ -236,7 +279,7 @@ public class CustomerController : Controller
         return View("Order/EditOrder", order);
     }
 
-    [HttpPost("/Orders/Edit/{id}")]
+    [HttpPost("/Order/Edit/{id}")]
     public async Task<IActionResult> EditOrder(Order model)
     {
         var auth = CheckCustomer();
@@ -251,7 +294,7 @@ public class CustomerController : Controller
         return RedirectToAction("Details", new { id = model.Id });
     }
 
-    [HttpPost("/Orders/Cancel")]
+    [HttpPost("/Order/Cancel")]
     public async Task<IActionResult> CancelOrder(int id, string reason)
     {
         var auth = CheckCustomer();
@@ -261,5 +304,14 @@ public class CustomerController : Controller
             return BadRequest();
 
         return RedirectToAction("Orders");
+    }
+
+    [HttpGet("Profile")]
+    public async Task<IActionResult> Profile()
+    {
+        var auth = CheckCustomer();
+        if (auth != null) return auth;
+
+        return RedirectToAction("Profile", "Account");
     }
 }

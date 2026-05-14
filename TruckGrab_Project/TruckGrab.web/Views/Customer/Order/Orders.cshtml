@@ -67,12 +67,12 @@
                                 <span class="text-white fw-bold">@order.TotalPrice.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="/Orders/Details/@order.Id" class="btn btn-sm btn-outline-light border-secondary border-opacity-50">
+                                <a href="/Order/Details/@order.Id" class="btn btn-sm btn-outline-light border-secondary border-opacity-50">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 @if (order.Status == "pending")
                                 {
-                                    <a href="/Orders/Edit/@order.Id" class="btn btn-sm btn-outline-warning ms-1">
+                                    <a href="/Order/Edit/@order.Id" class="btn btn-sm btn-outline-warning ms-1">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 }

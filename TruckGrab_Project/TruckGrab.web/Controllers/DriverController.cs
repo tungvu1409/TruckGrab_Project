@@ -3,6 +3,7 @@ using TruckGrab.web.Models;
 using TruckGrab.web.Services;
 using TruckGrab.web.Services.Interface;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace TruckGrab.web.Controllers;
 
@@ -13,17 +14,20 @@ public class DriverController : Controller
     private readonly IOrderService _orderService;
     private readonly ILogger<DriverController> _logger;
     private readonly DriverLocationStore _locationStore;
+    private readonly TruckGrab.web.Data.ApplicationDbContext _context;
 
     public DriverController(
         IDriverService driverService,
         IOrderService orderService,
         ILogger<DriverController> logger,
-        DriverLocationStore locationStore)
+        DriverLocationStore locationStore,
+        TruckGrab.web.Data.ApplicationDbContext context)
     {
         _driverService = driverService;
         _orderService = orderService;
         _logger = logger;
         _locationStore = locationStore;
+        _context = context;
     }
 
     private int? GetCurrentUserId()
@@ -56,7 +60,29 @@ public class DriverController : Controller
             return RedirectToAction("Login", "Account");
 
         var driver = await _driverService.GetDriverByUserIdAsync(userId.Value);
+        if (driver == null) return RedirectToAction("CreateProfile");
+
         return View(driver);
+    }
+
+    [HttpPost("Profile/Edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditDriverProfile(string licenseNumber, string licenseClass, int experienceYears)
+    {
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue) return RedirectToAction("Login", "Account");
+
+        var driver = await _driverService.GetDriverByUserIdAsync(userId.Value);
+        if (driver != null)
+        {
+            driver.LicenseNumber = licenseNumber;
+            driver.LicenseClass = licenseClass;
+            driver.ExperienceYears = experienceYears;
+            await _driverService.UpdateDriverAsync(driver);
+            TempData["SuccessMessage"] = "Cập nhật hồ sơ tài xế thành công!";
+        }
+
+        return RedirectToAction("Profile");
     }
 
     [HttpGet("MyOrders")]
@@ -219,6 +245,52 @@ public class DriverController : Controller
             _logger.LogError(ex, "Error updating driver profile for user {UserId}", userId);
             return BadRequest("Error updating profile");
         }
+    }
+
+    [HttpPost("ConfirmPickup/{orderId}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmPickup(int orderId)
+    {
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue) return RedirectToAction("Login", "Account");
+
+        var driver = await _driverService.GetDriverByUserIdAsync(userId.Value);
+        if (driver == null) return NotFound();
+
+        var success = await UpdateOrderStatusAsync(orderId, driver.Id, Order.Statuses.InTransit, userId.Value, "Hàng đã được bốc lên xe.");
+        if (success)
+        {
+            TempData["SuccessMessage"] = "Xác nhận bốc hàng thành công!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể cập nhật trạng thái đơn hàng.";
+        }
+
+        return RedirectToAction("OrderDetails", new { id = orderId });
+    }
+
+    [HttpPost("ConfirmDelivery/{orderId}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmDelivery(int orderId)
+    {
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue) return RedirectToAction("Login", "Account");
+
+        var driver = await _driverService.GetDriverByUserIdAsync(userId.Value);
+        if (driver == null) return NotFound();
+
+        var success = await UpdateOrderStatusAsync(orderId, driver.Id, Order.Statuses.Delivered, userId.Value, "Hàng đã được giao thành công.");
+        if (success)
+        {
+            TempData["SuccessMessage"] = "Xác nhận giao hàng thành công!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể cập nhật trạng thái đơn hàng.";
+        }
+
+        return RedirectToAction("OrderDetails", new { id = orderId });
     }
 
     [HttpPost("StartDelivery/{orderId}")]

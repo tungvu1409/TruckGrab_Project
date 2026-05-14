@@ -35,4 +35,14 @@ public class Order
     public bool IsDeleted { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public static class Statuses
+    {
+        public const string Pending = "pending";
+        public const string Assigned = "assigned";
+        public const string Picking = "picking";
+        public const string InTransit = "in_transit";
+        public const string Delivered = "delivered";
+        public const string Cancelled = "cancelled";
+    }
 }

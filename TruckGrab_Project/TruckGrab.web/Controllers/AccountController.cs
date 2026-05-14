@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 namespace TruckGrab.web.Controllers;
 
 [Route("[controller]")]
@@ -131,6 +132,47 @@ public class AccountController : Controller
     {
         Response.Cookies.Delete("jwt_token");
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet("Profile")]
+    public async Task<IActionResult> Profile()
+    {
+        if (!User.Identity?.IsAuthenticated ?? true) return RedirectToAction("Login");
+
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+        var user = await _context.Users
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user?.Profile == null)
+        {
+            user!.Profile = new UserProfile { UserId = userId, FullName = user.UserName };
+            _context.UserProfiles.Add(user.Profile);
+            await _context.SaveChangesAsync();
+        }
+
+        return View(user.Profile);
+    }
+
+    [HttpPost("Profile/Edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditProfile(UserProfile model)
+    {
+        if (!User.Identity?.IsAuthenticated ?? true) return RedirectToAction("Login");
+
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+        var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null) return NotFound();
+
+        profile.FullName = model.FullName;
+        profile.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email;
+        profile.Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone;
+        profile.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address;
+
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Cập nhật hồ sơ tài khoản thành công!";
+        return RedirectToAction("Profile");
     }
 
     

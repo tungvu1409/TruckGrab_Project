@@ -20,7 +20,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         #adminFullMap { height: calc(100vh - 0px); width: 100%; }
-        .leaflet-container { background: #0b0e14 !important; }
+        .leaflet-container { background: #f8f9fa !important; }
     </style>
 }
 
@@ -46,10 +46,10 @@
 @section Scripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const map = L.map('adminFullMap', { zoomControl: false }).setView([10.7769, 106.7009], 13);
+        const map = L.map('adminFullMap', { zoomControl: false }).setView([21.0285, 105.8542], 13);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 20

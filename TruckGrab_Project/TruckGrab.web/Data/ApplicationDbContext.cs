@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Trip> Trips { get; set; }
     public DbSet<Truck> Trucks { get; set; }
     public DbSet<TruckDriverAssignment> TruckDriverAssignments { get; set; }
+    public DbSet<TruckType> TruckTypes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -311,7 +312,10 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("fuel_type");
             entity.Property(t => t.Status)
                 .HasColumnName("status")
-                .HasConversion<string>();
+                .HasConversion(
+                    v => v == TruckStatus.OnTrip ? "on_trip" : v.ToString().ToLower(),
+                    v => v == "on_trip" ? TruckStatus.OnTrip : (TruckStatus)Enum.Parse(typeof(TruckStatus), v, true)
+                );
             entity.Property(t => t.CurrentLat)
                 .HasColumnName("current_lat");
             entity.Property(t => t.CurrentLng)
@@ -336,6 +340,15 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("assigned_at");
             entity.Property(a => a.IsPrimary)
                 .HasColumnName("is_primary");
+        });
+
+        modelBuilder.Entity<TruckType>(entity =>
+        {
+            entity.ToTable("truck_types");
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Id).HasColumnName("id");
+            entity.Property(t => t.TypeName).HasColumnName("type_name");
+            entity.Property(t => t.Description).HasColumnName("description");
         });
     }
 }

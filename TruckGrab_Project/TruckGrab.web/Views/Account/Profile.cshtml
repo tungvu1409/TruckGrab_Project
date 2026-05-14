@@ -1,0 +1,66 @@
+@model TruckGrab.web.Models.UserProfile
+@{
+    ViewData["Title"] = "Cài đặt tài khoản";
+    Layout = "_DispatchLayout";
+}
+
+<div class="dispatch-top-bar">
+    <div class="dispatch-page-title">
+        <i class="fas fa-user-gear text-accent-cyan"></i>
+        <span>Hồ sơ tài khoản</span>
+    </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success bg-success bg-opacity-10 border-success text-success mb-4">
+                <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <div class="dispatch-stat-card border-top-0 p-4">
+            <form asp-action="EditProfile" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="UserId" />
+                
+                <div class="mb-4 text-center">
+                    <div class="user-avatar-large mx-auto bg-dark border border-secondary border-opacity-20 text-white fw-bold rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        @(Model.FullName?[0].ToString().ToUpper() ?? "U")
+                    </div>
+                    <h4 class="text-white mb-0">@Model.FullName</h4>
+                    <p class="text-secondary small">Cài đặt định danh cá nhân</p>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">HỌ VÀ TÊN</label>
+                        <input asp-for="FullName" class="form-control bg-dark border-secondary text-white" required />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">EMAIL</label>
+                        <input asp-for="Email" type="email" class="form-control bg-dark border-secondary text-white" />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">SỐ ĐIỆN THOẠI</label>
+                        <input asp-for="Phone" class="form-control bg-dark border-secondary text-white" />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">ĐỊA CHỈ</label>
+                        <textarea asp-for="Address" class="form-control bg-dark border-secondary text-white" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm">
+                        LƯU THAY ĐỔI <i class="fas fa-save ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

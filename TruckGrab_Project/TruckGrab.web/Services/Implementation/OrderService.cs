@@ -16,15 +16,6 @@ public class OrderService : IOrderService
         _geolocationService = geolocationService;
     }
 
-    private static class OrderStatus
-    {
-        public const string Pending = "pending";
-        public const string Assigned = "assigned";
-        public const string Picking = "picking";
-        public const string InTransit = "in_transit";
-        public const string Delivered = "delivered";
-        public const string Cancelled = "cancelled";
-    }
 
     public async Task<List<Order>> GetOrdersAsync(int userId)
     {
@@ -105,7 +96,7 @@ public class OrderService : IOrderService
     {
         var assignedOrderIds = await _context.Trips.Select(t => t.OrderId).Distinct().ToListAsync();
         return await _context.Orders
-            .Where(o => !o.IsDeleted && o.Status == OrderStatus.Pending && !assignedOrderIds.Contains(o.Id))
+            .Where(o => !o.IsDeleted && o.Status == Order.Statuses.Pending && !assignedOrderIds.Contains(o.Id))
             .OrderBy(o => o.CreatedAt)
             .ToListAsync();
     }
@@ -165,7 +156,7 @@ public class OrderService : IOrderService
         model.DeliveryLocId = await GetOrCreateLocationAsync(model.DeliveryAddress);
 
         model.OrderCode = GenerateOrderCode();
-        model.Status = OrderStatus.Pending;
+        model.Status = Order.Statuses.Pending;
 
         model.CreatedAt = DateTime.UtcNow;
         model.UpdatedAt = DateTime.UtcNow;
@@ -200,7 +191,7 @@ public class OrderService : IOrderService
         {
             OrderId = model.Id,
             OldStatus = "",
-            NewStatus = OrderStatus.Pending,
+            NewStatus = Order.Statuses.Pending,
             ChangedByUserId = userId,
             Timestamp = DateTime.UtcNow,
             Note = "Created"
@@ -221,18 +212,18 @@ public class OrderService : IOrderService
         if (order.CustomerId != userId)
             return false;
 
-        if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
+        if (order.Status == Order.Statuses.Delivered || order.Status == Order.Statuses.Cancelled)
             return false;
 
-        if ((order.Status == OrderStatus.Pending || order.Status == OrderStatus.Picking) && 
+        if ((order.Status == Order.Statuses.Pending || order.Status == Order.Statuses.Picking) && 
             !string.IsNullOrWhiteSpace(model.PickupAddress))
         {
             order.PickupLocId = await GetOrCreateLocationAsync(model.PickupAddress);
         }
 
-        if (order.Status != OrderStatus.InTransit && 
-            order.Status != OrderStatus.Delivered && 
-            order.Status != OrderStatus.Cancelled && 
+        if (order.Status != Order.Statuses.InTransit && 
+            order.Status != Order.Statuses.Delivered && 
+            order.Status != Order.Statuses.Cancelled && 
             !string.IsNullOrWhiteSpace(model.DeliveryAddress))
         {
             order.DeliveryLocId = await GetOrCreateLocationAsync(model.DeliveryAddress);
@@ -259,12 +250,12 @@ public class OrderService : IOrderService
         if (order.CustomerId != userId)
             return false;
 
-        if (order.Status == OrderStatus.Delivered)
+        if (order.Status == Order.Statuses.Delivered)
             return false;
 
         var oldStatus = order.Status;
 
-        order.Status = OrderStatus.Cancelled;
+        order.Status = Order.Statuses.Cancelled;
         order.CancelledBy = userId;
         order.CancelledReason = reason;
         order.UpdatedAt = DateTime.UtcNow;
@@ -273,7 +264,7 @@ public class OrderService : IOrderService
         {
             OrderId = id,
             OldStatus = oldStatus,
-            NewStatus = OrderStatus.Cancelled,
+            NewStatus = Order.Statuses.Cancelled,
             ChangedByUserId = userId,
             Timestamp = DateTime.UtcNow,
             Note = reason
@@ -306,14 +297,14 @@ public class OrderService : IOrderService
             return false;
 
         var isAssigned = await _context.Trips.AnyAsync(t => t.OrderId == orderId);
-        if (order.Status != OrderStatus.Pending || isAssigned)
+        if (order.Status != Order.Statuses.Pending || isAssigned)
             return false;
 
         var driver = await _context.Drivers.FindAsync(driverId);
         var truckId = driver?.CurrentTruckId ?? 0;
 
         var oldStatus = order.Status;
-        order.Status = OrderStatus.Assigned;
+        order.Status = Order.Statuses.Assigned;
         order.UpdatedAt = DateTime.UtcNow;
 
         _context.Trips.Add(new Trip
@@ -328,7 +319,7 @@ public class OrderService : IOrderService
         {
             OrderId = orderId,
             OldStatus = oldStatus,
-            NewStatus = OrderStatus.Assigned,
+            NewStatus = Order.Statuses.Assigned,
             ChangedByUserId = assignedByUserId,
             Timestamp = DateTime.UtcNow,
             Note = $"Assigned to driver {driverId}"
@@ -347,11 +338,11 @@ public class OrderService : IOrderService
 
         var oldStatus = order.Status;
 
-        if (newStatus == OrderStatus.InTransit)
+        if (newStatus == Order.Statuses.InTransit)
         {
             order.ActualPickupTime = DateTime.UtcNow;
         }
-        else if (newStatus == OrderStatus.Delivered)
+        else if (newStatus == Order.Statuses.Delivered)
         {
             order.ActualDeliveryTime = DateTime.UtcNow;
         }
